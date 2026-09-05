@@ -13,7 +13,6 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
   const [playingProjectId, setPlayingProjectId] = useState<string | null>(null);
 
   const handleCardClick = (project: WoodProject) => {
-    // If not already playing, start playing inside this exact box
     if (playingProjectId !== project.id) {
       setPlayingProjectId(project.id);
     }
@@ -38,13 +37,12 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
           <div className="w-12 h-0.5 bg-[#C08A3E] mx-auto mt-3"></div>
         </div>
 
-        {/* Video Card Grid matching the exact YouTube player styling */}
+        {/* Video Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
           {projects.map((project) => {
             const isPlaying = playingProjectId === project.id;
             const displayThumbnail = project.thumbnailUrl || getYouTubeThumbnail(project.videoUrl);
             const embedUrl = getYouTubeEmbedUrl(project.videoUrl, true);
-            const videoId = getYouTubeVideoId(project.videoUrl);
 
             return (
               <div
@@ -52,10 +50,9 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                 id={`project-video-card-${project.id}`}
                 className="bg-black rounded-lg overflow-hidden border border-[#D9CEBF] shadow-sm hover:shadow-xl transition-all duration-300 relative aspect-video"
               >
-                {/* VIDEO DISPLAY AREA: Either Live In-Box Embed or Thumbnail with Play Button */}
+                {/* VIDEO DISPLAY AREA */}
                 <div className="relative w-full h-full overflow-hidden bg-zinc-900">
                   {isPlaying ? (
-                    // LIVE IN-PLACE YOUTUBE IFRAME (Plays right inside this box)
                     <div className="relative w-full h-full bg-black">
                       <iframe
                         src={embedUrl}
@@ -65,8 +62,8 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                         allowFullScreen
                       />
 
-                      {/* Quick floating action bar on top of playing video */}
-                      <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20 pointer-events-auto">
+                      {/* Normal sized floating action bar */}
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 z-25 pointer-events-auto">
                         <button
                           type="button"
                           onClick={(e) => {
@@ -74,9 +71,9 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                             onProjectClick(project);
                           }}
                           className="bg-black/90 hover:bg-[#C08A3E] text-white hover:text-black text-[11px] font-semibold px-2.5 py-1 rounded shadow-lg flex items-center gap-1 border border-white/20 transition-all cursor-pointer"
-                          title="Badi Screen Mein Dekhein (Expand to Full View / Modal)"
+                          title="Badi Screen Mein Dekhein"
                         >
-                          <Maximize2 className="w-3.5 h-3.5" />
+                          <Maximize2 className="w-3 h-3" />
                           <span>Badi Screen</span>
                         </button>
                         <button
@@ -85,15 +82,14 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                             e.stopPropagation();
                             setPlayingProjectId(null);
                           }}
-                          className="bg-black/90 hover:bg-red-600 text-white p-1 rounded shadow-lg flex items-center justify-center border border-white/20 transition-all cursor-pointer"
-                          title="Video Band Karein (Stop)"
+                          className="bg-black/90 hover:bg-red-600 text-white p-1.5 rounded shadow-lg flex items-center justify-center border border-white/20 transition-all cursor-pointer"
+                          title="Video Band Karein"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
                   ) : (
-                    // THUMBNAIL VIEW (Clicking starts playback in this exact box)
                     <div
                       onClick={() => handleCardClick(project)}
                       className="group cursor-pointer relative w-full h-full"
@@ -105,10 +101,10 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                         referrerPolicy="no-referrer"
                       />
 
-                      {/* Top Video Header Bar overlay */}
+                      {/* Top Video Header Bar */}
                       <div className="absolute top-0 inset-x-0 bg-gradient-to-b from-black/80 to-transparent p-3 flex items-center justify-between text-white pointer-events-none">
                         <div className="flex items-center gap-2 max-w-[80%]">
-                          <div className="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-xs">
+                          <div className="w-5 h-5 rounded-full bg-amber-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-xs">
                             W
                           </div>
                           <span className="text-xs font-medium truncate drop-shadow-sm">
@@ -116,14 +112,14 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                           </span>
                         </div>
                         <div className="text-gray-300">
-                          <Share2 className="w-3.5 h-3.5" />
+                          <Share2 className="w-3 h-3" />
                         </div>
                       </div>
 
-                      {/* YouTube Red Play Button in Center */}
+                      {/* Normal Sized YouTube Red Play Button in Center */}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-14 h-10 bg-[#FF0000] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-115 group-hover:bg-[#CC0000] transition-transform duration-200">
-                          <Play className="w-5 h-5 fill-current ml-0.5" />
+                        <div className="w-11 h-8 bg-[#FF0000] rounded-lg flex items-center justify-center text-white shadow-md group-hover:scale-110 group-hover:bg-[#CC0000] transition-transform duration-200">
+                          <Play className="w-4 h-4 fill-current ml-0.5" />
                         </div>
                       </div>
 
@@ -133,7 +129,7 @@ export const RecentProjects: React.FC<RecentProjectsProps> = ({ onProjectClick }
                           <Clock className="w-3 h-3 text-gray-300" />
                           <span>Play in this box</span>
                           <span className="font-bold flex items-center gap-1 text-white ml-1">
-                            <span className="bg-[#FF0000] px-1 py-0.2 rounded text-[8px] leading-tight">▶</span>
+                            <span className="bg-[#FF0000] px-1 py-0.2 rounded text-[7px] leading-tight">▶</span>
                             YouTube
                           </span>
                         </div>
