@@ -270,7 +270,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try { localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(galleryPhotos)); } catch (e) { console.error(e); }
   }, [galleryPhotos]);
 
-  // Firestore Real-Time Cloud Synchronization (Including Settings!)
+  // Firestore Real-Time Cloud Synchronization (Including Settings & Projects!)
   useEffect(() => {
     testFirestoreConnection();
 
@@ -278,6 +278,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let unsubCategories: (() => void) | null = null;
     let unsubInquiries: (() => void) | null = null;
     let unsubSettings: (() => void) | null = null;
+    let unsubProjects: (() => void) | null = null;
 
     try {
       unsubSettings = onSnapshot(
@@ -290,6 +291,18 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         (error) => {
           console.warn('Settings sync notice:', error);
         }
+      );
+
+      unsubProjects = onSnapshot(
+        collection(db, 'projects'),
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const list: WoodProject[] = [];
+            snapshot.forEach((d) => { list.push(d.data() as WoodProject); });
+            if (list.length > 0) setProjects(list);
+          }
+        },
+        (error) => { handleFirestoreError(error, OperationType.GET, 'projects'); }
       );
 
       unsubProducts = onSnapshot(
@@ -333,6 +346,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     return () => {
       unsubSettings?.();
+      unsubProjects?.();
       unsubProducts?.();
       unsubCategories?.();
       unsubInquiries?.();
@@ -404,6 +418,9 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: `proj-${Date.now()}`
     };
     setProjects((prev) => [newProj, ...prev]);
+    setDoc(doc(db, 'projects', newProj.id), newProj).catch((err) =>
+      handleFirestoreError(err, OperationType.WRITE, 'projects')
+    );
   };
 
   const updateProject = (id: string, updatedData: Partial<WoodProject>) => {
@@ -419,10 +436,20 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return updated;
       })
     );
+    const existing = projects.find((p) => p.id === id);
+    if (existing) {
+      const merged = { ...existing, ...updatedData };
+      setDoc(doc(db, 'projects', id), merged, { merge: true }).catch((err) =>
+        handleFirestoreError(err, OperationType.UPDATE, 'projects')
+      );
+    }
   };
 
   const deleteProject = (id: string) => {
     setProjects((prev) => prev.filter((item) => item.id !== id));
+    deleteDoc(doc(db, 'projects', id)).catch((err) =>
+      handleFirestoreError(err, OperationType.DELETE, 'projects')
+    );
   };
 
   const updateGalleryPhoto = (id: string, photoData: Partial<GalleryPhoto>) => {
@@ -439,12 +466,16 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const updateHeroSlide = (slideId: number, slideData: Partial<HeroSlide>) => {
-    setSiteSettings((prev) => ({
-      ...prev,
-      heroSlides: (prev.heroSlides || initialSiteSettings.heroSlides).map((slide) =>
+    setSiteSettings((prev) => {
+      const updatedSlides = (prev.heroSlides || initialSiteSettings.heroSlides).map((slide) =>
         slide.id === slideId ? { ...slide, ...slideData } : slide
-      )
-    }));
+      );
+      const updated = { ...prev, heroSlides: updatedSlides };
+      setDoc(doc(db, 'settings', 'siteSettings'), updated, { merge: true }).catch((err) =>
+        handleFirestoreError(err, OperationType.UPDATE, 'settings')
+      );
+      return updated;
+    });
   };
 
   const addHeroSlide = (slideData: Omit<HeroSlide, 'id'>) => {
@@ -453,7 +484,11 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (slides.length >= 10) return prev;
       const nextId = Math.max(0, ...slides.map((s) => s.id)) + 1;
       const newSlide: HeroSlide = { ...slideData, id: nextId };
-      return { ...prev, heroSlides: [...slides, newSlide] };
+      const updated = { ...prev, heroSlides: [...slides, newSlide] };
+      setDoc(doc(db, 'settings', 'siteSettings'), updated, { merge: true }).catch((err) =>
+        handleFirestoreError(err, OperationType.UPDATE, 'settings')
+      );
+      return updated;
     });
   };
 
@@ -461,7 +496,11 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setSiteSettings((prev) => {
       const slides = prev.heroSlides || initialSiteSettings.heroSlides;
       if (slides.length <= 1) return prev;
-      return { ...prev, heroSlides: slides.filter((s) => s.id !== slideId) };
+      const updated = { ...prev, heroSlides: slides.filter((s) => s.id !== slideId) };
+      setDoc(doc(db, 'settings', 'siteSettings'), updated, { merge: true }).catch((err) =>
+        handleFirestoreError(err, OperationType.UPDATE, 'settings')
+      );
+      return updated;
     });
   };
 
