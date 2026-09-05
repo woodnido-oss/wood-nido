@@ -1,0 +1,7 @@
+{
+  "name": "Wood Nido",
+  "description": "Wood Nido - Premium bespoke furniture, woodworking, polishing, and home renovation with an easy-to-use admin product catalog dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

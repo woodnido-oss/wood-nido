@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "Product": {
+      "title": "WoodProduct",
+      "description": "Artisan woodwork and furniture product item in catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "woodType": { "type": "string" },
+        "dimensions": { "type": "string" },
+        "finishType": { "type": "string" },
+        "inStock": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "price", "imageUrl"]
+    },
+    "Category": {
+      "title": "WoodCategory",
+      "description": "Furniture service and product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "Project": {
+      "title": "WoodProject",
+      "description": "Showcase video and woodwork transformation project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "title", "videoUrl"]
+    },
+    "CustomerInquiry": {
+      "title": "CustomerInquiry",
+      "description": "Customer custom carpentry inquiries and requests",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "category": { "type": "string" },
+        "requirement": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "customerName", "phone", "requirement"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global website configuration, contact details, and hero sliders",
+      "type": "object",
+      "properties": {
+        "businessName": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" }
+      },
+      "required": ["businessName", "phone", "whatsappNumber"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Catalog of bespoke wooden furniture pieces"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product and woodworking services categories"
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Project videos and craftsmanship showcase"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "CustomerInquiry",
+      "description": "Customer inquiry records submitted from website"
+    },
+    "/settings/{settingId}": {
+      "schema": "SiteSettings",
+      "description": "Store settings and business contact info"
+    }
+  }
+}
