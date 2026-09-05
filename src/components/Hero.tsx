@@ -18,7 +18,8 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
-  const slides = siteSettings.heroSlides && siteSettings.heroSlides.length >= 5
+  // Prioritize admin-saved heroSlides from siteSettings, fallback to initial if empty
+  const slides = siteSettings.heroSlides && siteSettings.heroSlides.length > 0
     ? siteSettings.heroSlides
     : initialHeroSlides;
 
@@ -50,10 +51,8 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
     if (touchStartX === null || touchEndX === null) return;
     const distance = touchStartX - touchEndX;
     if (distance > minSwipeDistance) {
-      // Swiped left -> next slide
       nextSlide();
     } else if (distance < -minSwipeDistance) {
-      // Swiped right -> prev slide
       prevSlide();
     }
   };
@@ -81,7 +80,7 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
       className="relative w-full md:min-h-[580px] lg:min-h-[640px] bg-[#FAF8F5] border-b border-[#EAE4D8] overflow-hidden select-none"
     >
       {/* ========================================================================= */}
-      {/* DESKTOP VIEW (md: and above): Full Panoramic Poster Layout matching screen */}
+      {/* DESKTOP VIEW (md: and above): Full Panoramic Poster Layout */}
       {/* ========================================================================= */}
       <div className="hidden md:flex relative w-full flex-col justify-between flex-1 min-h-[580px] lg:min-h-[640px]">
         {/* Full Panoramic Background Image */}
@@ -97,7 +96,7 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
             >
               <img
                 src={currentSlide.imageUrl}
-                alt={currentSlide.itemTitle}
+                alt={currentSlide.itemTitle || currentSlide.headline}
                 className="w-full h-full object-cover object-center"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
@@ -111,7 +110,7 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
           </AnimatePresence>
         </div>
 
-        {/* Seamless Left Scrim / Gradient Overlay (Solid cream on left, fading to transparent) */}
+        {/* Seamless Left Scrim / Gradient Overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -143,12 +142,12 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
 
                 <div>
                   <h2 className="text-lg md:text-xl font-bold text-[#86531A] tracking-tight">
-                    {currentSlide.id === 1 ? siteSettings.heroStartingPrice : currentSlide.price}
+                    {currentSlide.price}
                   </h2>
                 </div>
 
                 <p className="text-sm md:text-base text-[#575048] leading-relaxed max-w-lg">
-                  {currentSlide.id === 1 ? siteSettings.heroSubtext : currentSlide.subtext}
+                  {currentSlide.subtext}
                 </p>
 
                 <div className="pt-4 flex items-center gap-4">
@@ -194,10 +193,9 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
       </div>
 
       {/* ========================================================================= */}
-      {/* MOBILE PHONE VIEW (< md): Full Photo Display + Small Compact Details      */}
+      {/* MOBILE PHONE VIEW (< md): Full Photo Display + Compact Details */}
       {/* ========================================================================= */}
       <div className="flex md:hidden flex-col w-full bg-[#FAF8F5]">
-        {/* 1. Full Photo Container (Entire photo clearly visible without heavy zoom crop) */}
         <div className="relative w-full h-[210px] sm:h-[260px] bg-[#1a1816] overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
@@ -210,7 +208,7 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
             >
               <img
                 src={currentSlide.imageUrl}
-                alt={currentSlide.itemTitle}
+                alt={currentSlide.itemTitle || currentSlide.headline}
                 className="w-full h-full object-cover object-center"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
@@ -223,21 +221,17 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
             </motion.div>
           </AnimatePresence>
 
-          {/* Subtle top & bottom shadow for contrast */}
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/25 via-transparent to-black/35" />
 
-          {/* Floating Badge on top right of photo */}
           <div className="absolute top-2.5 right-2.5 z-10 bg-black/75 backdrop-blur-xs text-[10px] font-bold text-[#E5B56A] uppercase px-2 py-0.5 rounded shadow-xs">
             {currentSlide.badge || 'Solid Wood'}
           </div>
 
-          {/* Item title caption on bottom left of photo */}
           <div className="absolute bottom-2 left-2.5 right-2.5 z-10 text-white/90 text-[11px] font-medium truncate drop-shadow-sm">
-            {currentSlide.itemTitle}
+            {currentSlide.itemTitle || currentSlide.headline}
           </div>
         </div>
 
-        {/* 2. Compact Content Area with Small Fonts */}
         <div className="px-4 py-3 space-y-2">
           <AnimatePresence mode="wait">
             <motion.div
@@ -248,27 +242,23 @@ export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) =>
               transition={{ duration: 0.25, ease: 'easeOut' }}
               className="space-y-1.5"
             >
-              {/* Category / Sub-headline & Price on same line */}
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-extrabold text-[#936224] uppercase tracking-wider">
                   {currentSlide.badge || 'Solid Hardwood'}
                 </span>
                 <span className="text-xs font-bold text-[#86531A]">
-                  {currentSlide.id === 1 ? siteSettings.heroStartingPrice : currentSlide.price}
+                  {currentSlide.price}
                 </span>
               </div>
 
-              {/* Main Headline (Small font on phone as requested) */}
               <h1 className="text-lg sm:text-2xl font-black uppercase text-[#141210] font-sans tracking-tight leading-snug">
                 {currentSlide.headline}
               </h1>
 
-              {/* Description Subtext (compact 1-2 lines) */}
               <p className="text-[11px] text-[#575048] leading-relaxed line-clamp-2">
-                {currentSlide.id === 1 ? siteSettings.heroSubtext : currentSlide.subtext}
+                {currentSlide.subtext}
               </p>
 
-              {/* Compact Buttons */}
               <div className="pt-1.5 flex items-center gap-2">
                 <button
                   id="hero-read-more-btn-mobile"
