@@ -54,12 +54,12 @@ interface WoodStoreContextType {
   updateProject: (id: string, project: Partial<WoodProject>) => void;
   deleteProject: (id: string) => void;
 
-  // Gallery Photos (Master Portfolio 8-grid) CRUD
+  // Gallery Photos CRUD
   updateGalleryPhoto: (id: string, photo: Partial<GalleryPhoto>) => void;
   addGalleryPhoto: (photo: Omit<GalleryPhoto, 'id'>) => void;
   deleteGalleryPhoto: (id: string) => void;
 
-  // Hero Slides Image & Content Editor (5 to 10 slides)
+  // Hero Slides Editor
   updateHeroSlide: (slideId: number, slideData: Partial<HeroSlide>) => void;
   addHeroSlide: (slide: Omit<HeroSlide, 'id'>) => void;
   deleteHeroSlide: (slideId: number) => void;
@@ -107,7 +107,6 @@ function getStoredItem(key: string, legacyKey: string): string | null {
     if (current) return current;
     const legacy = localStorage.getItem(legacyKey);
     if (legacy) {
-      // Migrate forward
       localStorage.setItem(key, legacy);
       return legacy;
     }
@@ -118,7 +117,6 @@ function getStoredItem(key: string, legacyKey: string): string | null {
 }
 
 export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Check if current URL or hash indicates admin
   const isInitialAdmin = () => {
     if (typeof window === 'undefined') return false;
     const path = window.location.pathname.toLowerCase();
@@ -131,14 +129,12 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [quickInquiryProduct, setQuickInquiryProduct] = useState<WoodProduct | null>(null);
   const [activeVideoProject, setActiveVideoProject] = useState<WoodProject | null>(null);
 
-  // Sync with browser URL / history for separate page navigation
   const setViewMode = (mode: 'customer' | 'admin') => {
     setViewModeState(mode);
     if (typeof window !== 'undefined') {
       try {
         if (mode === 'admin') {
           if (!window.location.pathname.includes('/admin') && !window.location.hash.includes('admin')) {
-            // Support both path and hash for preview iframes
             window.history.pushState({ mode: 'admin' }, '', '#/admin');
           }
         } else {
@@ -152,7 +148,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Listen for browser Back/Forward navigation
   useEffect(() => {
     const handlePopState = () => {
       const isAdmin = isInitialAdmin();
@@ -168,14 +163,11 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, []);
 
-  // Settings
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.SETTINGS, LEGACY_STORAGE_KEYS.SETTINGS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Ensure all required new fields exist
-        // Ensure at least 5 to 10 slides are present
         const validSlides = (parsed.heroSlides && parsed.heroSlides.length >= 5)
           ? parsed.heroSlides
           : initialSiteSettings.heroSlides;
@@ -186,23 +178,8 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           heroSlides: validSlides
         };
 
-        // Upgrade legacy business name & email if previously saved as Wood Nest
-        if (merged.businessName === 'Wood Nest') {
-          merged.businessName = 'Wood Nido';
-        }
-        if (merged.email === 'info@woodnest.com') {
-          merged.email = 'info@woodnido.com';
-        }
-        if (typeof merged.aboutText1 === 'string' && merged.aboutText1.includes('Wood Nest')) {
-          merged.aboutText1 = merged.aboutText1.replace(/Wood Nest/g, 'Wood Nido');
-        }
-        if (typeof merged.aboutText2 === 'string' && merged.aboutText2.includes('Wood Nest')) {
-          merged.aboutText2 = merged.aboutText2.replace(/Wood Nest/g, 'Wood Nido');
-        }
-        if (typeof merged.aboutText3 === 'string' && merged.aboutText3.includes('Wood Nest')) {
-          merged.aboutText3 = merged.aboutText3.replace(/Wood Nest/g, 'Wood Nido');
-        }
-
+        if (merged.businessName === 'Wood Nest') merged.businessName = 'Wood Nido';
+        if (merged.email === 'info@woodnest.com') merged.email = 'info@woodnido.com';
         return merged;
       }
       return initialSiteSettings;
@@ -211,7 +188,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Categories
   const [categories, setCategories] = useState<WoodCategory[]>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.CATEGORIES, LEGACY_STORAGE_KEYS.CATEGORIES);
@@ -221,7 +197,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Products
   const [products, setProducts] = useState<WoodProduct[]>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.PRODUCTS, LEGACY_STORAGE_KEYS.PRODUCTS);
@@ -231,7 +206,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Projects (YouTube videos)
   const [projects, setProjects] = useState<WoodProject[]>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.PROJECTS, LEGACY_STORAGE_KEYS.PROJECTS);
@@ -241,7 +215,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Reviews
   const [reviews, setReviews] = useState<ClientReview[]>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.REVIEWS, LEGACY_STORAGE_KEYS.REVIEWS);
@@ -251,7 +224,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Inquiries
   const [inquiries, setInquiries] = useState<CustomerInquiry[]>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.INQUIRIES, LEGACY_STORAGE_KEYS.INQUIRIES);
@@ -261,7 +233,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Gallery Photos (Master Portfolio 8-grid)
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>(() => {
     try {
       const saved = getStoredItem(STORAGE_KEYS.GALLERY, LEGACY_STORAGE_KEYS.GALLERY);
@@ -271,88 +242,66 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   });
 
-  // Sync to LocalStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(siteSettings));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(siteSettings)); } catch (e) { console.error(e); }
   }, [siteSettings]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories)); } catch (e) { console.error(e); }
   }, [categories]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products)); } catch (e) { console.error(e); }
   }, [products]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); } catch (e) { console.error(e); }
   }, [projects]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews)); } catch (e) { console.error(e); }
   }, [reviews]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.INQUIRIES, JSON.stringify(inquiries));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.INQUIRIES, JSON.stringify(inquiries)); } catch (e) { console.error(e); }
   }, [inquiries]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(galleryPhotos));
-    } catch (e) {
-      console.error(e);
-    }
+    try { localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(galleryPhotos)); } catch (e) { console.error(e); }
   }, [galleryPhotos]);
 
-  // Firestore Real-Time Cloud Synchronization
+  // Firestore Real-Time Cloud Synchronization (Including Settings!)
   useEffect(() => {
     testFirestoreConnection();
 
     let unsubProducts: (() => void) | null = null;
     let unsubCategories: (() => void) | null = null;
     let unsubInquiries: (() => void) | null = null;
+    let unsubSettings: (() => void) | null = null;
 
     try {
+      unsubSettings = onSnapshot(
+        doc(db, 'settings', 'siteSettings'),
+        (docSnap) => {
+          if (docSnap.exists()) {
+            setSiteSettings(docSnap.data() as SiteSettings);
+          }
+        },
+        (error) => {
+          console.warn('Settings sync notice:', error);
+        }
+      );
+
       unsubProducts = onSnapshot(
         collection(db, 'products'),
         (snapshot) => {
           if (!snapshot.empty) {
             const list: WoodProduct[] = [];
-            snapshot.forEach((d) => {
-              list.push(d.data() as WoodProduct);
-            });
-            if (list.length > 0) {
-              setProducts(list);
-            }
+            snapshot.forEach((d) => { list.push(d.data() as WoodProduct); });
+            if (list.length > 0) setProducts(list);
           }
         },
-        (error) => {
-          handleFirestoreError(error, OperationType.GET, 'products');
-        }
+        (error) => { handleFirestoreError(error, OperationType.GET, 'products'); }
       );
 
       unsubCategories = onSnapshot(
@@ -360,17 +309,11 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         (snapshot) => {
           if (!snapshot.empty) {
             const list: WoodCategory[] = [];
-            snapshot.forEach((d) => {
-              list.push(d.data() as WoodCategory);
-            });
-            if (list.length > 0) {
-              setCategories(list);
-            }
+            snapshot.forEach((d) => { list.push(d.data() as WoodCategory); });
+            if (list.length > 0) setCategories(list);
           }
         },
-        (error) => {
-          handleFirestoreError(error, OperationType.GET, 'categories');
-        }
+        (error) => { handleFirestoreError(error, OperationType.GET, 'categories'); }
       );
 
       unsubInquiries = onSnapshot(
@@ -378,30 +321,24 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         (snapshot) => {
           if (!snapshot.empty) {
             const list: CustomerInquiry[] = [];
-            snapshot.forEach((d) => {
-              list.push(d.data() as CustomerInquiry);
-            });
-            if (list.length > 0) {
-              setInquiries(list);
-            }
+            snapshot.forEach((d) => { list.push(d.data() as CustomerInquiry); });
+            if (list.length > 0) setInquiries(list);
           }
         },
-        (error) => {
-          handleFirestoreError(error, OperationType.GET, 'inquiries');
-        }
+        (error) => { handleFirestoreError(error, OperationType.GET, 'inquiries'); }
       );
     } catch (err) {
       console.warn('Firestore real-time listeners initialization notice:', err);
     }
 
     return () => {
+      unsubSettings?.();
       unsubProducts?.();
       unsubCategories?.();
       unsubInquiries?.();
     };
   }, []);
 
-  // Product CRUD
   const addProduct = (productData: Omit<WoodProduct, 'id' | 'createdAt'>) => {
     const newProduct: WoodProduct = {
       ...productData,
@@ -415,9 +352,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const updateProduct = (id: string, updatedData: Partial<WoodProduct>) => {
-    setProducts((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updatedData } : item))
-    );
+    setProducts((prev) => prev.map((item) => (item.id === id ? { ...item, ...updatedData } : item)));
     const existing = products.find((p) => p.id === id);
     if (existing) {
       setDoc(doc(db, 'products', id), { ...existing, ...updatedData }, { merge: true }).catch((err) =>
@@ -433,12 +368,8 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
   };
 
-  // Category CRUD
   const addCategory = (catData: Omit<WoodCategory, 'id'>) => {
-    const newCat: WoodCategory = {
-      ...catData,
-      id: `cat-${Date.now()}`
-    };
+    const newCat: WoodCategory = { ...catData, id: `cat-${Date.now()}` };
     setCategories((prev) => [...prev, newCat]);
     setDoc(doc(db, 'categories', newCat.id), newCat).catch((err) =>
       handleFirestoreError(err, OperationType.WRITE, 'categories')
@@ -446,9 +377,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const updateCategory = (id: string, updatedData: Partial<WoodCategory>) => {
-    setCategories((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updatedData } : item))
-    );
+    setCategories((prev) => prev.map((item) => (item.id === id ? { ...item, ...updatedData } : item)));
     const existing = categories.find((c) => c.id === id);
     if (existing) {
       setDoc(doc(db, 'categories', id), { ...existing, ...updatedData }, { merge: true }).catch((err) =>
@@ -464,14 +393,11 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
   };
 
-  // Project (YouTube video) CRUD
   const addProject = (projData: Omit<WoodProject, 'id'>) => {
-    // If thumbnail isn't provided but it's a YouTube link, automatically fetch high-res YouTube thumbnail
     let thumbnail = projData.thumbnailUrl;
     if ((!thumbnail || thumbnail.trim() === '') && isValidYouTubeUrl(projData.videoUrl)) {
       thumbnail = getYouTubeThumbnail(projData.videoUrl);
     }
-
     const newProj: WoodProject = {
       ...projData,
       thumbnailUrl: thumbnail || 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=700&q=80',
@@ -485,7 +411,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       prev.map((item) => {
         if (item.id !== id) return item;
         const updated = { ...item, ...updatedData };
-        // If videoUrl changed and thumbnail was default or empty, auto-refresh thumbnail
         if (updatedData.videoUrl && (!updatedData.thumbnailUrl || updatedData.thumbnailUrl === item.thumbnailUrl)) {
           if (isValidYouTubeUrl(updatedData.videoUrl)) {
             updated.thumbnailUrl = getYouTubeThumbnail(updatedData.videoUrl);
@@ -500,18 +425,12 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProjects((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Gallery Photos CRUD
   const updateGalleryPhoto = (id: string, photoData: Partial<GalleryPhoto>) => {
-    setGalleryPhotos((prev) =>
-      prev.map((photo) => (photo.id === id ? { ...photo, ...photoData } : photo))
-    );
+    setGalleryPhotos((prev) => prev.map((photo) => (photo.id === id ? { ...photo, ...photoData } : photo)));
   };
 
   const addGalleryPhoto = (photoData: Omit<GalleryPhoto, 'id'>) => {
-    const newPhoto: GalleryPhoto = {
-      ...photoData,
-      id: `gal-${Date.now()}`
-    };
+    const newPhoto: GalleryPhoto = { ...photoData, id: `gal-${Date.now()}` };
     setGalleryPhotos((prev) => [...prev, newPhoto]);
   };
 
@@ -519,7 +438,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setGalleryPhotos((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Hero Slides Editor (5 to 10 slides)
   const updateHeroSlide = (slideId: number, slideData: Partial<HeroSlide>) => {
     setSiteSettings((prev) => ({
       ...prev,
@@ -532,13 +450,10 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const addHeroSlide = (slideData: Omit<HeroSlide, 'id'>) => {
     setSiteSettings((prev) => {
       const slides = prev.heroSlides || initialSiteSettings.heroSlides;
-      if (slides.length >= 10) return prev; // Maximum 10 slides
+      if (slides.length >= 10) return prev;
       const nextId = Math.max(0, ...slides.map((s) => s.id)) + 1;
       const newSlide: HeroSlide = { ...slideData, id: nextId };
-      return {
-        ...prev,
-        heroSlides: [...slides, newSlide]
-      };
+      return { ...prev, heroSlides: [...slides, newSlide] };
     });
   };
 
@@ -546,30 +461,25 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setSiteSettings((prev) => {
       const slides = prev.heroSlides || initialSiteSettings.heroSlides;
       if (slides.length <= 1) return prev;
-      return {
-        ...prev,
-        heroSlides: slides.filter((s) => s.id !== slideId)
-      };
+      return { ...prev, heroSlides: slides.filter((s) => s.id !== slideId) };
     });
   };
 
-  // Specific Site Images Editor
   const updateSpecificImage = (
     type: 'aboutImage1' | 'aboutImage2' | 'ctaImage' | 'showroomImage' | 'logoUrl',
     url: string
   ) => {
-    setSiteSettings((prev) => ({
-      ...prev,
-      [type]: url
-    }));
+    setSiteSettings((prev) => {
+      const updated = { ...prev, [type]: url };
+      setDoc(doc(db, 'settings', 'siteSettings'), updated, { merge: true }).catch((err) =>
+        handleFirestoreError(err, OperationType.UPDATE, 'settings')
+      );
+      return updated;
+    });
   };
 
-  // Reviews CRUD
   const addReview = (reviewData: Omit<ClientReview, 'id'>) => {
-    const newReview: ClientReview = {
-      ...reviewData,
-      id: `rev-${Date.now()}`
-    };
+    const newReview: ClientReview = { ...reviewData, id: `rev-${Date.now()}` };
     setReviews((prev) => [newReview, ...prev]);
   };
 
@@ -577,7 +487,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setReviews((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Inquiries
   const submitInquiry = (inquiryData: Omit<CustomerInquiry, 'id' | 'createdAt' | 'status'>) => {
     const newInquiry: CustomerInquiry = {
       ...inquiryData,
@@ -592,9 +501,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const updateInquiryStatus = (id: string, status: CustomerInquiry['status']) => {
-    setInquiries((prev) =>
-      prev.map((inq) => (inq.id === id ? { ...inq, status } : inq))
-    );
+    setInquiries((prev) => prev.map((inq) => (inq.id === id ? { ...inq, status } : inq)));
     setDoc(doc(db, 'inquiries', id), { status }, { merge: true }).catch((err) =>
       handleFirestoreError(err, OperationType.UPDATE, 'inquiries')
     );
@@ -607,9 +514,15 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
   };
 
-  // Site Settings
+  // Site Settings with Firestore Sync Integration
   const updateSiteSettings = (newSettings: Partial<SiteSettings>) => {
-    setSiteSettings((prev) => ({ ...prev, ...newSettings }));
+    setSiteSettings((prev) => {
+      const updated = { ...prev, ...newSettings };
+      setDoc(doc(db, 'settings', 'siteSettings'), updated, { merge: true }).catch((err) =>
+        handleFirestoreError(err, OperationType.UPDATE, 'settings')
+      );
+      return updated;
+    });
   };
 
   const resetToDefaults = () => {
@@ -620,6 +533,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setReviews(initialReviews);
     setInquiries(initialInquiries);
     setGalleryPhotos(initialGalleryPhotos);
+    setDoc(doc(db, 'settings', 'siteSettings'), initialSiteSettings).catch(() => {});
   };
 
   return (
