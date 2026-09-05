@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useWoodStore } from '../context/WoodStoreContext';
-import { ShieldCheck, ArrowRight, Menu, X, Phone, Hammer, Store, LogIn } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Menu, X, Phone, Hammer, Store } from 'lucide-react';
 
 interface HeaderProps {
   onNavigate: (sectionId: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
-  const { viewMode, setViewMode, siteSettings, inquiries } = useWoodStore();
+  const { siteSettings, inquiries } = useWoodStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const pendingInquiriesCount = inquiries.filter(i => i.status === 'New').length;
@@ -19,7 +19,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E8E2D9] transition-all shadow-xs">
-      {/* Top Notification Bar for Admin Switcher */}
+      {/* Top Notification Bar */}
       <div className="bg-[#1A1816] text-[#D8C7B0] text-xs py-1.5 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -30,35 +30,11 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-3">
             <a
               href={`tel:${siteSettings.phone.replace(/\s+/g, '')}`}
-              className="hidden sm:inline-flex items-center gap-1 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1 hover:text-white transition-colors"
             >
               <Phone className="w-3 h-3 text-amber-500" />
               <span>{siteSettings.phone}</span>
             </a>
-
-            <div className="h-3 w-px bg-white/20 hidden sm:block"></div>
-
-            <button
-              id="admin-mode-toggle"
-              onClick={() => setViewMode(viewMode === 'customer' ? 'admin' : 'customer')}
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium transition-all ${
-                viewMode === 'admin'
-                  ? 'bg-amber-500 text-black font-semibold'
-                  : 'bg-white/10 hover:bg-white/20 text-white'
-              }`}
-            >
-              {viewMode === 'admin' ? (
-                <>
-                  <Store className="w-3.5 h-3.5" />
-                  <span>Exit Admin (Live Site)</span>
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Login</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -66,13 +42,12 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Brand Logo matching the screenshot styling */}
+          {/* Brand Logo */}
           <div
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => handleNavClick('hero-section')}
           >
             <div className="w-11 h-11 rounded-lg bg-[#2A231C] border border-amber-600/40 flex items-center justify-center text-amber-400 shadow-xs group-hover:border-amber-500 transition-colors">
-              {/* Stylized Wood / Gable Icon matching the screenshot */}
               <div className="relative flex flex-col items-center">
                 <Hammer className="w-6 h-6 text-amber-500 transform -rotate-12" />
               </div>
@@ -96,25 +71,25 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           <nav className="hidden md:flex items-center gap-8">
             <button
               onClick={() => handleNavClick('hero-section')}
-              className="text-sm font-medium text-[#C08A3E] hover:text-[#9A6B29] transition-colors"
+              className="text-sm font-medium text-[#C08A3E] hover:text-[#9A6B29] transition-colors cursor-pointer"
             >
               Home
             </button>
             <button
               onClick={() => handleNavClick('about-section')}
-              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors"
+              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors cursor-pointer"
             >
               About Us
             </button>
             <button
               onClick={() => handleNavClick('categories-section')}
-              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors"
+              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors cursor-pointer"
             >
               Services
             </button>
             <button
               onClick={() => handleNavClick('products-section')}
-              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors flex items-center gap-1"
+              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors flex items-center gap-1 cursor-pointer"
             >
               <span>Catalog</span>
               <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded-sm">
@@ -123,19 +98,19 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
             </button>
             <button
               onClick={() => handleNavClick('projects-section')}
-              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors"
+              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors cursor-pointer"
             >
               Projects
             </button>
             <button
               onClick={() => handleNavClick('reviews-section')}
-              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors"
+              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors cursor-pointer"
             >
               Reviews
             </button>
             <button
               onClick={() => handleNavClick('contact-section')}
-              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors"
+              className="text-sm font-medium text-[#4A453F] hover:text-[#C08A3E] transition-colors cursor-pointer"
             >
               Contact
             </button>
@@ -146,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
             <button
               id="header-get-in-touch-btn"
               onClick={() => handleNavClick('contact-section')}
-              className="bg-[#121110] hover:bg-[#2B2724] text-white text-xs tracking-wider uppercase font-semibold px-6 py-3 rounded-none transition-all shadow-xs hover:shadow-md active:scale-98 flex items-center gap-2"
+              className="bg-[#121110] hover:bg-[#2B2724] text-white text-xs tracking-wider uppercase font-semibold px-6 py-3 rounded-none transition-all shadow-xs hover:shadow-md active:scale-98 flex items-center gap-2 cursor-pointer"
             >
               <span>Get in Touch</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
@@ -157,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
           <div className="flex md:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#2A231C] hover:text-[#C08A3E] focus:outline-none"
+              className="p-2 text-[#2A231C] hover:text-[#C08A3E] focus:outline-none cursor-pointer"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -214,19 +189,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
 
           <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
             <button
-              onClick={() => {
-                setViewMode(viewMode === 'customer' ? 'admin' : 'customer');
-                setMobileMenuOpen(false);
-              }}
-              className="w-full py-2.5 px-4 bg-amber-50 text-[#845619] border border-amber-200 rounded font-medium text-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>{viewMode === 'admin' ? 'Back to Live Website' : 'Login'}</span>
-            </button>
-
-            <button
               onClick={() => handleNavClick('contact-section')}
-              className="w-full py-3 bg-[#121110] text-white text-xs uppercase font-semibold tracking-wider flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#121110] text-white text-xs uppercase font-semibold tracking-wider flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Get in Touch</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
