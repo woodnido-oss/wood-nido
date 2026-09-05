@@ -78,12 +78,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setViewMode
   } = useWoodStore();
 
-  // Remember active tab on refresh using localStorage (Default is now 'overview')
+  // Always start at 'overview' on fresh load/refresh, but remember during active session navigation
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'videos' | 'images' | 'categories' | 'inquiries' | 'settings'>(() => {
     if (typeof window !== 'undefined') {
-      const savedTab = localStorage.getItem('wood_nido_admin_active_tab');
-      if (savedTab && ['overview', 'products', 'videos', 'images', 'categories', 'inquiries', 'settings'].includes(savedTab)) {
-        return savedTab as any;
+      const sessionActive = sessionStorage.getItem('wood_nido_admin_session_active');
+      if (sessionActive) {
+        const savedTab = localStorage.getItem('wood_nido_admin_active_tab');
+        if (savedTab && ['overview', 'products', 'videos', 'images', 'categories', 'inquiries', 'settings'].includes(savedTab)) {
+          return savedTab as any;
+        }
       }
     }
     return 'overview';
@@ -91,6 +94,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      sessionStorage.setItem('wood_nido_admin_session_active', 'true');
       localStorage.setItem('wood_nido_admin_active_tab', activeTab);
     }
   }, [activeTab]);
@@ -103,6 +107,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       sessionStorage.removeItem('wood_nido_admin_auth');
       sessionStorage.removeItem('wood_nido_admin_user');
       sessionStorage.removeItem('wood_nido_admin_time');
+      sessionStorage.removeItem('wood_nido_admin_session_active');
       localStorage.removeItem('wood_nido_admin_remember');
       localStorage.removeItem('wood_nido_admin_token');
       localStorage.removeItem('wood_nido_admin_active_tab');
