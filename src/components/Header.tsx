@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWoodStore } from '../context/WoodStoreContext';
-import { ShieldCheck, ArrowRight, Menu, X, Phone, Hammer, Store } from 'lucide-react';
+import { ArrowRight, Menu, X, Phone, Hammer, MapPin } from 'lucide-react';
 
 interface HeaderProps {
   onNavigate: (sectionId: string) => void;
@@ -10,22 +10,32 @@ export const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
   const { siteSettings, inquiries } = useWoodStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const pendingInquiriesCount = inquiries.filter(i => i.status === 'New').length;
-
   const handleNavClick = (id: string) => {
     onNavigate(id);
     setMobileMenuOpen(false);
   };
 
+  // Permanent Workshop Address Location
+  const permanentAddress = "Soan Garden B Block Markaz Islamabad";
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(permanentAddress)}`;
+
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E8E2D9] transition-all shadow-xs">
-      {/* Top Notification Bar */}
+      {/* Top Notification Bar with Shop Name & Location Link */}
       <div className="bg-[#1A1816] text-[#D8C7B0] text-xs py-1.5 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer group"
+            title="Click to open shop location on Google Maps"
+          >
             <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>Showroom & Workshop: {siteSettings.address}</span>
-          </div>
+            <MapPin className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="font-semibold text-white tracking-wide">Wood Nido Showroom & Workshop</span>
+            <span className="text-zinc-400 hidden sm:inline">({permanentAddress})</span>
+          </a>
 
           <div className="flex items-center gap-3">
             <a
