@@ -976,7 +976,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 5: INQUIRIES (CRITICAL SAFELY PATCHED WITH FALLBACKS) */}
+          {/* TAB 5: INQUIRIES */}
           {activeTab === 'inquiries' && (
             <div className="space-y-6">
               <div className="bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs flex items-center justify-between">
@@ -1107,12 +1107,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 6: SETTINGS */}
+          {/* TAB 6: SETTINGS (FULLY RESTORED SOCIAL MEDIA LINKS SECTION) */}
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <div className="bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
                 <h2 className="text-xl font-bold font-serif text-[#1C1A17]">Business Contact & Brand Settings</h2>
-                <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Update business name, WhatsApp number, and Islamabad showroom address.</p>
+                <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Update business name, WhatsApp number, Islamabad showroom address, and social media links.</p>
               </div>
 
               <form onSubmit={handleSaveSettings} className="bg-white p-6 rounded-lg border border-[#DDD3C5] space-y-6 shadow-xs">
@@ -1127,6 +1127,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     />
                   </div>
                   <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Tagline</label>
+                    <input
+                      type="text"
+                      value={settingsForm.tagline}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, tagline: e.target.value })}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Phone Number</label>
                     <input
                       type="text"
@@ -1134,6 +1143,103 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })}
                       className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">WhatsApp Inquiry Number</label>
+                    <input
+                      type="text"
+                      value={settingsForm.whatsappNumber}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, whatsappNumber: e.target.value })}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Email Address</label>
+                    <input
+                      type="email"
+                      value={settingsForm.email}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Showroom & Workshop Address</label>
+                    <input
+                      type="text"
+                      value={settingsForm.address}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
+                      className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                    />
+                  </div>
+                </div>
+
+                {/* SOCIAL MEDIA PROFILES SECTION */}
+                <div className="pt-5 border-t border-gray-200">
+                  <div className="mb-3">
+                    <h3 className="text-sm font-bold text-[#1C1A17] uppercase tracking-wide">
+                      Social Media Profiles & Links
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Manage the links for Facebook, Instagram, TikTok, and YouTube displayed across the footer.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                        Facebook Page URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://facebook.com/woodnido"
+                        value={settingsForm.facebookUrl || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5] focus:outline-none focus:border-[#C08A3E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-pink-600"></span>
+                        Instagram Profile URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://instagram.com/woodnido"
+                        value={settingsForm.instagramUrl || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5] focus:outline-none focus:border-[#C08A3E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-black"></span>
+                        TikTok Account URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://tiktok.com/@woodnido"
+                        value={settingsForm.tiktokUrl || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, tiktokUrl: e.target.value })}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5] focus:outline-none focus:border-[#C08A3E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-600"></span>
+                        YouTube Channel URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://youtube.com/@woodnido"
+                        value={settingsForm.youtubeUrl || ''}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, youtubeUrl: e.target.value })}
+                        className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5] focus:outline-none focus:border-[#C08A3E]"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1148,9 +1254,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
         </main>
       </div>
-
-      {/* MODALS (Product, Video, Image Editor, Category, Slide) */}
-      {/* ... keeping standard modal structures unchanged ... */}
 
       {/* UNIVERSAL IMAGE EDITOR MODAL */}
       {imageEditorModal.isOpen && (
