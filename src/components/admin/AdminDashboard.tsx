@@ -75,7 +75,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setViewMode
   } = useWoodStore();
 
-  const [activeTab, setActiveTab] = useState<'products' | 'videos' | 'images' | 'categories' | 'inquiries' | 'settings'>('products');
+  // Remember active tab on refresh using localStorage
+  const [activeTab, setActiveTab] = useState<'products' | 'videos' | 'images' | 'categories' | 'inquiries' | 'settings'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('wood_nido_admin_active_tab');
+      if (savedTab && ['products', 'videos', 'images', 'categories', 'inquiries', 'settings'].includes(savedTab)) {
+        return savedTab as any;
+      }
+    }
+    return 'products';
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wood_nido_admin_active_tab', activeTab);
+    }
+  }, [activeTab]);
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -86,6 +102,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       sessionStorage.removeItem('wood_nido_admin_time');
       localStorage.removeItem('wood_nido_admin_remember');
       localStorage.removeItem('wood_nido_admin_token');
+      localStorage.removeItem('wood_nido_admin_active_tab');
     } catch {}
     if (onLogout) {
       onLogout();
@@ -1107,7 +1124,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 6: SETTINGS (FULLY RESTORED SOCIAL MEDIA LINKS SECTION) */}
+          {/* TAB 6: SETTINGS */}
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <div className="bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
