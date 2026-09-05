@@ -1128,12 +1128,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 3: IMAGES (FIXED HERO SLIDER PHOTO EDITOR) */}
+          {/* TAB 3: IMAGES (FIXED HERO SLIDER DETAILS BUTTON CLICK) */}
           {activeTab === 'images' && (
             <div className="space-y-10">
               <div className="bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
                 <h2 className="text-xl font-bold font-serif text-[#1C1A17]">Website Images Manager</h2>
-                <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Click "Photo" on any section below to update photos instantly via URL or presets.</p>
+                <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Click "Photo" to update images, or "Details" to edit headlines and price texts.</p>
               </div>
 
               {/* Hero Slider Images */}
@@ -1159,15 +1159,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       </div>
                       <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-gray-200">
                         <button
-                          onClick={() =>
-                            openImageEditor(
-                              `Hero Slide ${idx + 1} Image`,
-                              'Enter any high-res image URL for this hero slider slide.',
-                              slide.imageUrl,
-                              (newUrl) => updateHeroSlide(slide.id, { imageUrl: newUrl })
-                            )
-                          }
-                          className="py-1.5 px-2 bg-white hover:bg-amber-50 text-gray-800 border border-gray-300 text-[11px] font-semibold rounded flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                          onClick={() => openImageEditor(`Hero Slide ${idx + 1} Image`, 'Enter any image URL.', slide.imageUrl, (newUrl) => updateHeroSlide(slide.id, { imageUrl: newUrl }))}
+                          className="py-1.5 px-2 bg-white text-gray-800 border text-[11px] font-semibold rounded flex items-center justify-center gap-1 cursor-pointer"
                         >
                           <ImageIcon className="w-3 h-3 text-amber-600" /><span>Photo</span>
                         </button>
@@ -1523,7 +1516,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 />
               </div>
               <div className="pt-3 border-t border-gray-200 flex justify-end gap-3">
-                <button type="button" onClick={() => setImageEditorModal({ ...imageEditorModal, isOpen: false })} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
+                <button type="button" onClick={() => setImageEditorModal({ ...imageEditorModal, isOpen: false })} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded rounded-md cursor-pointer">
                   Cancel
                 </button>
                 <button type="button" onClick={handleApplyImageEdit} className="bg-[#121110] text-white text-xs font-semibold px-6 py-2 rounded flex items-center gap-2 cursor-pointer">
@@ -1531,6 +1524,98 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* HERO SLIDE EDIT DETAILS MODAL */}
+      {slideEditorModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="relative w-full max-w-lg bg-white rounded-lg shadow-2xl border border-gray-300 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-[#FAF8F5]">
+              <h3 className="text-base font-bold text-[#1C1A17] font-serif">
+                {slideEditorModal.isNew ? 'Add New Hero Slide' : 'Edit Slide Headings & Price'}
+              </h3>
+              <button onClick={() => setSlideEditorModal(prev => ({ ...prev, isOpen: false }))} className="p-1 text-gray-400 hover:text-black rounded-full cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSlide} className="p-6 space-y-4 overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Headline</label>
+                <input
+                  type="text"
+                  required
+                  value={slideEditorModal.headline}
+                  onChange={(e) => setSlideEditorModal({ ...slideEditorModal, headline: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Item Title / Subheading</label>
+                <input
+                  type="text"
+                  required
+                  value={slideEditorModal.itemTitle}
+                  onChange={(e) => setSlideEditorModal({ ...slideEditorModal, itemTitle: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Price Tag</label>
+                  <input
+                    type="text"
+                    required
+                    value={slideEditorModal.price}
+                    onChange={(e) => setSlideEditorModal({ ...slideEditorModal, price: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Badge</label>
+                  <input
+                    type="text"
+                    value={slideEditorModal.badge}
+                    onChange={(e) => setSlideEditorModal({ ...slideEditorModal, badge: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Image URL</label>
+                <input
+                  type="url"
+                  required
+                  value={slideEditorModal.imageUrl}
+                  onChange={(e) => setSlideEditorModal({ ...slideEditorModal, imageUrl: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Description / Subtext</label>
+                <textarea
+                  rows={2}
+                  value={slideEditorModal.subtext}
+                  onChange={(e) => setSlideEditorModal({ ...slideEditorModal, subtext: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onClick={() => setSlideEditorModal(prev => ({ ...prev, isOpen: false }))} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-[#121110] text-white text-xs font-semibold px-6 py-2 rounded flex items-center gap-2 cursor-pointer">
+                  <Save className="w-4 h-4 text-amber-400" /><span>Save Slide Details</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
