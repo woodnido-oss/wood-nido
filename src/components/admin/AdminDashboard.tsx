@@ -1128,12 +1128,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 3: IMAGES */}
+          {/* TAB 3: IMAGES (FIXED HERO SLIDER PHOTO EDITOR) */}
           {activeTab === 'images' && (
             <div className="space-y-10">
               <div className="bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
                 <h2 className="text-xl font-bold font-serif text-[#1C1A17]">Website Images Manager</h2>
-                <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Click "Change Image" on any section below to update photos instantly.</p>
+                <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Click "Photo" on any section below to update photos instantly via URL or presets.</p>
               </div>
 
               {/* Hero Slider Images */}
@@ -1155,15 +1155,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                           <img src={slide.imageUrl} alt={slide.headline} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         </div>
                         <h4 className="text-xs font-bold text-gray-900 line-clamp-1">{slide.headline}</h4>
+                        <p className="text-[11px] text-gray-500 line-clamp-1">{slide.itemTitle}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-gray-200">
                         <button
-                          onClick={() => openImageEditor(`Hero Slide ${idx + 1} Image`, 'Enter any image URL.', slide.imageUrl, (newUrl) => updateHeroSlide(slide.id, { imageUrl: newUrl }))}
-                          className="py-1.5 px-2 bg-white text-gray-800 border text-[11px] font-semibold rounded flex items-center justify-center gap-1 cursor-pointer"
+                          onClick={() =>
+                            openImageEditor(
+                              `Hero Slide ${idx + 1} Image`,
+                              'Enter any high-res image URL for this hero slider slide.',
+                              slide.imageUrl,
+                              (newUrl) => updateHeroSlide(slide.id, { imageUrl: newUrl })
+                            )
+                          }
+                          className="py-1.5 px-2 bg-white hover:bg-amber-50 text-gray-800 border border-gray-300 text-[11px] font-semibold rounded flex items-center justify-center gap-1 transition-colors cursor-pointer"
                         >
                           <ImageIcon className="w-3 h-3 text-amber-600" /><span>Photo</span>
                         </button>
-                        <button onClick={() => handleOpenEditSlide(slide)} className="py-1.5 px-2 bg-white text-gray-800 border text-[11px] font-semibold rounded flex items-center justify-center gap-1 cursor-pointer">
+                        <button 
+                          onClick={() => handleOpenEditSlide(slide)} 
+                          className="py-1.5 px-2 bg-white hover:bg-amber-50 text-gray-800 border border-gray-300 text-[11px] font-semibold rounded flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                        >
                           <Edit2 className="w-3 h-3 text-amber-600" /><span>Details</span>
                         </button>
                       </div>
