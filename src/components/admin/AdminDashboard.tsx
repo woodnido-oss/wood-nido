@@ -78,7 +78,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setViewMode
   } = useWoodStore();
 
-  // Always start at 'overview' on fresh load/refresh, but remember during active session navigation
   const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'videos' | 'images' | 'categories' | 'inquiries' | 'settings'>(() => {
     if (typeof window !== 'undefined') {
       const sessionActive = sessionStorage.getItem('wood_nido_admin_session_active');
@@ -196,7 +195,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   // YouTube Video Modal State
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
-  const [testVideoPreview, setTestVideoPreview] = useState(false);
   const [videoForm, setVideoForm] = useState({
     title: '',
     category: 'Bedroom & Paneling',
@@ -209,7 +207,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   const handleOpenAddVideo = () => {
     setEditingVideoId(null);
-    setTestVideoPreview(false);
     setVideoForm({
       title: '',
       category: 'Living Room',
@@ -224,7 +221,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   const handleOpenEditVideo = (proj: WoodProject) => {
     setEditingVideoId(proj.id);
-    setTestVideoPreview(false);
     setVideoForm({
       title: proj.title,
       category: proj.category,
@@ -259,42 +255,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       showToast(`New YouTube video project added!`);
     }
     setIsVideoModalOpen(false);
-  };
-
-  // Quick Image Selector Modal
-  const [imageEditorModal, setImageEditorModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    description: string;
-    currentUrl: string;
-    onSave: (newUrl: string) => void;
-  }>({
-    isOpen: false,
-    title: '',
-    description: '',
-    currentUrl: '',
-    onSave: () => {}
-  });
-
-  const [customImageUrlInput, setCustomImageUrlInput] = useState('');
-
-  const openImageEditor = (title: string, description: string, currentUrl: string, onSave: (newUrl: string) => void) => {
-    setCustomImageUrlInput(currentUrl);
-    setImageEditorModal({
-      isOpen: true,
-      title,
-      description,
-      currentUrl,
-      onSave
-    });
-  };
-
-  const handleApplyImageEdit = () => {
-    if (customImageUrlInput.trim()) {
-      imageEditorModal.onSave(customImageUrlInput.trim());
-      showToast(`${imageEditorModal.title} updated successfully!`);
-      setImageEditorModal({ ...imageEditorModal, isOpen: false });
-    }
   };
 
   // Categories Modal State
@@ -346,6 +306,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setIsCategoryModalOpen(false);
   };
 
+  // Quick Image Selector Modal
+  const [imageEditorModal, setImageEditorModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    currentUrl: string;
+    onSave: (newUrl: string) => void;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    currentUrl: '',
+    onSave: () => {}
+  });
+
+  const [customImageUrlInput, setCustomImageUrlInput] = useState('');
+
+  const openImageEditor = (title: string, description: string, currentUrl: string, onSave: (newUrl: string) => void) => {
+    setCustomImageUrlInput(currentUrl);
+    setImageEditorModal({
+      isOpen: true,
+      title,
+      description,
+      currentUrl,
+      onSave
+    });
+  };
+
+  const handleApplyImageEdit = () => {
+    if (customImageUrlInput.trim()) {
+      imageEditorModal.onSave(customImageUrlInput.trim());
+      showToast(`${imageEditorModal.title} updated successfully!`);
+      setImageEditorModal({ ...imageEditorModal, isOpen: false });
+    }
+  };
+
   // Settings Form State
   const [settingsForm, setSettingsForm] = useState({ ...siteSettings });
 
@@ -360,12 +356,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   };
 
   // ZIP Download State
-  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-
   const handleDownloadZip = () => {
-    setIsDownloading(true);
-    setIsDownloadModalOpen(true);
     try {
       const byteCharacters = atob(WOOD_NIDO_ZIP_BASE64);
       const byteNumbers = new Uint8Array(byteCharacters.length);
@@ -385,12 +376,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       setTimeout(() => {
         document.body.removeChild(downloadLink);
         URL.revokeObjectURL(blobUrl);
-        setIsDownloading(false);
         showToast('wood-nido-project.zip downloaded successfully!');
       }, 700);
     } catch (err) {
       console.error('Download error', err);
-      setIsDownloading(false);
     }
   };
 
@@ -965,12 +954,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     </button>
 
                     <button
-                      onClick={() => setActiveTab('images')}
+                      onClick={() => setActiveTab('categories')}
                       className="w-full text-left p-3 rounded bg-[#FAF8F5] hover:bg-amber-50/60 border border-gray-200 flex items-center justify-between transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5">
-                        <ImageIcon className="w-4 h-4 text-amber-500" />
-                        <span className="text-xs font-bold text-gray-800">Update Hero / About Photos</span>
+                        <FolderTree className="w-4 h-4 text-[#C08A3E]" />
+                        <span className="text-xs font-bold text-gray-800">Add / Edit Categories</span>
                       </div>
                       <ArrowUpRight className="w-3.5 h-3.5 text-gray-400" />
                     </button>
@@ -1077,7 +1066,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 2: VIDEOS */}
+          {/* TAB 2: VIDEOS (YOUTUBE PROJECTS) */}
           {activeTab === 'videos' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
@@ -1114,10 +1103,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         </div>
                       </div>
                       <div className="p-3 bg-[#FAF8F5] border-t border-[#EAE4D8] flex items-center justify-between">
-                        <button onClick={() => handleOpenEditVideo(proj)} className="px-2.5 py-1 text-xs font-semibold bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 flex items-center gap-1">
-                          <Edit2 className="w-3 h-3" /><span>Edit</span>
+                        <button onClick={() => handleOpenEditVideo(proj)} className="px-2.5 py-1 text-xs font-semibold bg-white border border-gray-300 rounded text-gray-700 hover:bg-gray-50 flex items-center gap-1 cursor-pointer">
+                          <Edit2 className="w-3 h-3 text-blue-600" /><span>Edit</span>
                         </button>
-                        <button onClick={() => deleteProject(proj.id)} className="px-2.5 py-1 text-xs font-semibold bg-white border border-red-200 rounded text-red-600 hover:bg-red-50 flex items-center gap-1">
+                        <button onClick={() => { if (confirm(`Delete "${proj.title}"?`)) deleteProject(proj.id); }} className="px-2.5 py-1 text-xs font-semibold bg-white border border-red-200 rounded text-red-600 hover:bg-red-50 flex items-center gap-1 cursor-pointer">
                           <Trash2 className="w-3 h-3" /><span>Delete</span>
                         </button>
                       </div>
@@ -1128,7 +1117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 3: IMAGES (FIXED HERO SLIDER DETAILS BUTTON CLICK) */}
+          {/* TAB 3: IMAGES */}
           {activeTab === 'images' && (
             <div className="space-y-10">
               <div className="bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
@@ -1178,13 +1167,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             </div>
           )}
 
-          {/* TAB 4: CATEGORIES */}
+          {/* TAB 4: CATEGORIES (FULLY FIXED) */}
           {activeTab === 'categories' && (
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-lg border border-[#DDD3C5] shadow-xs">
-                <h2 className="text-xl font-bold font-serif text-[#1C1A17]">Categories & Woodwork Services</h2>
+                <div>
+                  <h2 className="text-xl font-bold font-serif text-[#1C1A17]">Categories & Woodwork Services</h2>
+                  <p className="text-xs sm:text-sm text-[#70685E] mt-0.5">Add new categories or update existing ones.</p>
+                </div>
                 <button onClick={handleOpenAddCategory} className="bg-[#121110] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-sm flex items-center gap-2 cursor-pointer">
-                  <Plus className="w-4 h-4 text-amber-400" /><span>Add Category</span>
+                  <Plus className="w-4 h-4 text-amber-400" /><span>Add New Category</span>
                 </button>
               </div>
 
@@ -1201,10 +1193,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       </div>
                     </div>
                     <div className="p-3 bg-[#FAF8F5] border-t border-[#EAE4D8] flex items-center justify-between">
-                      <button onClick={() => handleOpenEditCategory(c)} className="px-2.5 py-1 text-xs font-semibold bg-white border rounded text-gray-700 flex items-center gap-1">
+                      <button onClick={() => handleOpenEditCategory(c)} className="px-2.5 py-1 text-xs font-semibold bg-white border rounded text-blue-600 flex items-center gap-1 cursor-pointer">
                         <Edit2 className="w-3 h-3" /><span>Edit</span>
                       </button>
-                      <button onClick={() => deleteCategory(c.id)} className="px-2.5 py-1 text-xs font-semibold bg-white border border-red-200 rounded text-red-600 flex items-center gap-1">
+                      <button onClick={() => { if (confirm(`Delete category "${c.name}"?`)) deleteCategory(c.id); }} className="px-2.5 py-1 text-xs font-semibold bg-white border border-red-200 rounded text-red-600 flex items-center gap-1 cursor-pointer">
                         <Trash2 className="w-3 h-3" /><span>Delete</span>
                       </button>
                     </div>
@@ -1493,6 +1485,246 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         </main>
       </div>
 
+      {/* PRODUCT ADD/EDIT MODAL */}
+      {isProductModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="relative w-full max-w-xl bg-white rounded-lg shadow-2xl border border-gray-300 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-[#FAF8F5]">
+              <h3 className="text-base font-bold text-[#1C1A17] font-serif">
+                {editingProductId ? 'Edit Wood Product' : 'Add New Wood Product'}
+              </h3>
+              <button onClick={() => setIsProductModalOpen(false)} className="p-1 text-gray-400 hover:text-black rounded-full cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveProduct} className="p-6 space-y-4 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Product Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={productForm.title}
+                    onChange={(e) => setProductForm({ ...productForm, title: e.target.value })}
+                    placeholder="e.g. Solid Oak Dining Table"
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
+                  <select
+                    value={productForm.category}
+                    onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Price (PKR)</label>
+                  <input
+                    type="number"
+                    required
+                    value={productForm.price}
+                    onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Wood Type</label>
+                  <input
+                    type="text"
+                    value={productForm.woodType}
+                    onChange={(e) => setProductForm({ ...productForm, woodType: e.target.value })}
+                    placeholder="e.g. Solid Sheesham / Ash"
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Image URL</label>
+                <input
+                  type="url"
+                  required
+                  value={productForm.imageUrl}
+                  onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={productForm.description}
+                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsProductModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-[#121110] text-white text-xs font-semibold px-6 py-2 rounded flex items-center gap-2 cursor-pointer">
+                  <Check className="w-4 h-4 text-amber-400" /><span>Save Product</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* YOUTUBE VIDEO ADD/EDIT MODAL */}
+      {isVideoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="relative w-full max-w-xl bg-white rounded-lg shadow-2xl border border-gray-300 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-[#FAF8F5]">
+              <h3 className="text-base font-bold text-[#1C1A17] font-serif">
+                {editingVideoId ? 'Edit YouTube Video Project' : 'Add New YouTube Video Project'}
+              </h3>
+              <button onClick={() => setIsVideoModalOpen(false)} className="p-1 text-gray-400 hover:text-black rounded-full cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveVideo} className="p-6 space-y-4 overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Video Title</label>
+                <input
+                  type="text"
+                  required
+                  value={videoForm.title}
+                  onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
+                  placeholder="e.g. Custom Walk-in Closet Installation"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Category</label>
+                  <input
+                    type="text"
+                    required
+                    value={videoForm.category}
+                    onChange={(e) => setVideoForm({ ...videoForm, category: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Duration</label>
+                  <input
+                    type="text"
+                    value={videoForm.duration}
+                    onChange={(e) => setVideoForm({ ...videoForm, duration: e.target.value })}
+                    placeholder="e.g. 4:20"
+                    className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">YouTube Video URL</label>
+                <input
+                  type="url"
+                  required
+                  value={videoForm.videoUrl}
+                  onChange={(e) => setVideoForm({ ...videoForm, videoUrl: e.target.value })}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={videoForm.description}
+                  onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsVideoModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-6 py-2 rounded flex items-center gap-2 cursor-pointer">
+                  <Check className="w-4 h-4 text-white" /><span>Save YouTube Video</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CATEGORY ADD/EDIT MODAL */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="relative w-full max-w-xl bg-white rounded-lg shadow-2xl border border-gray-300 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-[#FAF8F5]">
+              <h3 className="text-base font-bold text-[#1C1A17] font-serif">
+                {editingCategoryId ? 'Edit Woodwork Category' : 'Add New Woodwork Category'}
+              </h3>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="p-1 text-gray-400 hover:text-black rounded-full cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveCategory} className="p-6 space-y-4 overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Category Name</label>
+                <input
+                  type="text"
+                  required
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                  placeholder="e.g. Custom Kitchens"
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Image URL</label>
+                <input
+                  type="url"
+                  required
+                  value={categoryForm.imageUrl}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, imageUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded bg-[#FAF8F5]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-[#121110] text-white text-xs font-semibold px-6 py-2 rounded flex items-center gap-2 cursor-pointer">
+                  <Check className="w-4 h-4 text-amber-400" /><span>Save Category</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* UNIVERSAL IMAGE EDITOR MODAL */}
       {imageEditorModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
@@ -1516,7 +1748,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 />
               </div>
               <div className="pt-3 border-t border-gray-200 flex justify-end gap-3">
-                <button type="button" onClick={() => setImageEditorModal({ ...imageEditorModal, isOpen: false })} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded rounded-md cursor-pointer">
+                <button type="button" onClick={() => setImageEditorModal({ ...imageEditorModal, isOpen: false })} className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded cursor-pointer">
                   Cancel
                 </button>
                 <button type="button" onClick={handleApplyImageEdit} className="bg-[#121110] text-white text-xs font-semibold px-6 py-2 rounded flex items-center gap-2 cursor-pointer">
