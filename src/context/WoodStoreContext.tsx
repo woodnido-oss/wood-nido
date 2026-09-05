@@ -168,7 +168,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const saved = getStoredItem(STORAGE_KEYS.SETTINGS, LEGACY_STORAGE_KEYS.SETTINGS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        const validSlides = (parsed.heroSlides && parsed.heroSlides.length >= 5)
+        const validSlides = (parsed.heroSlides && parsed.heroSlides.length >= 1)
           ? parsed.heroSlides
           : initialSiteSettings.heroSlides;
 
@@ -270,7 +270,7 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try { localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(galleryPhotos)); } catch (e) { console.error(e); }
   }, [galleryPhotos]);
 
-  // Firestore Real-Time Cloud Synchronization (Including Settings & Projects!)
+  // Firestore Real-Time Cloud Synchronization with safe fallbacks
   useEffect(() => {
     testFirestoreConnection();
 
@@ -285,7 +285,10 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         doc(db, 'settings', 'siteSettings'),
         (docSnap) => {
           if (docSnap.exists()) {
-            setSiteSettings(docSnap.data() as SiteSettings);
+            const data = docSnap.data() as SiteSettings;
+            if (data && data.heroSlides && data.heroSlides.length > 0) {
+              setSiteSettings(data);
+            }
           }
         },
         (error) => {
@@ -553,7 +556,6 @@ export const WoodStoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
   };
 
-  // Site Settings with Firestore Sync Integration
   const updateSiteSettings = (newSettings: Partial<SiteSettings>) => {
     setSiteSettings((prev) => {
       const updated = { ...prev, ...newSettings };
