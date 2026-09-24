@@ -1,180 +1,196 @@
 import React, { useState } from 'react';
-import { useWoodStore } from '../context/WoodStoreContext';
-import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-
-const CAROUSEL_SLIDES = [
-  {
-    id: 1,
-    leftImg: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80',
-    centerImg: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=800&q=80',
-    rightImg: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=800&q=80',
-    caption: 'Executive Villa Master Kitchen, Wardrobe Suite & TV Lounge Woodwork'
-  },
-  {
-    id: 2,
-    leftImg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80',
-    centerImg: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=800&q=80',
-    rightImg: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
-    caption: 'Solid Teak Entrance Doors, Boardroom Desk & Floating Hardwood Stairs'
-  },
-  {
-    id: 3,
-    leftImg: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80',
-    centerImg: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=800&q=80',
-    rightImg: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
-    caption: 'Handcrafted Living Lounge Seating, Sheesham Dining & Accent Armchairs'
-  }
-];
+import { useApp } from '../context/AppContext';
+import { Star, MessageSquarePlus, CheckCircle } from 'lucide-react';
 
 export const ClientReviews: React.FC = () => {
-  const { reviews } = useWoodStore();
-  const [carouselIndex, setCarouselIndex] = useState(0);
+  const { reviews, addReview } = useApp();
+  const [showAddReview, setShowAddReview] = useState(false);
+  const [name, setName] = useState('');
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [service, setService] = useState('Modular Kitchen');
+  const [submitted, setSubmitted] = useState(false);
 
-  const prevSlide = () => {
-    setCarouselIndex((prev) => (prev - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length);
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !comment.trim()) return;
+
+    addReview({
+      name,
+      rating,
+      comment,
+      service,
+      date: 'Just now',
+      role: 'Verified Client',
+    });
+
+    setSubmitted(true);
+    setTimeout(() => {
+      setSubmitted(false);
+      setShowAddReview(false);
+      setName('');
+      setComment('');
+    }, 2000);
   };
-
-  const nextSlide = () => {
-    setCarouselIndex((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
-  };
-
-  const currentSlide = CAROUSEL_SLIDES[carouselIndex];
 
   return (
-    <section id="reviews-section" className="py-16 sm:py-24 bg-white border-b border-[#EAE4D8]">
+    <section id="reviews" className="py-16 sm:py-24 bg-[#fbf8f3] relative border-t border-[#ebdcc7]/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Golden Section Title matching screenshot */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#C08A3E] font-serif tracking-tight">
-            What Our Clients Say
+        {/* Section Heading matching screenshot: What Our Client S| */}
+        <div className="text-center mb-12 sm:mb-16">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#a86c22]">
+            Client Testimonials
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-serif-title font-bold text-[#241710] tracking-tight mt-1 inline-flex items-center">
+            What Our Clients Say<span className="text-[#b87a2a] animate-pulse">|</span>
           </h2>
-          <div className="w-12 h-0.5 bg-[#C08A3E] mx-auto mt-2"></div>
+          <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#b87a2a] to-transparent mx-auto mt-3" />
+          <p className="text-stone-600 text-xs sm:text-sm mt-2 max-w-xl mx-auto">
+            Honest feedback and ratings from homeowners and clients across Islamabad, Rawalpindi, and surrounding areas.
+          </p>
+
+          <div className="mt-4">
+            <button
+              onClick={() => setShowAddReview(!showAddReview)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#8a5522] hover:text-[#5a3614] transition-colors py-1.5 px-4 rounded-lg border border-[#d6a760] bg-white hover:bg-[#faf0df] shadow-2xs cursor-pointer"
+            >
+              <MessageSquarePlus className="w-3.5 h-3.5 text-[#b87a2a]" />
+              {showAddReview ? 'Close Review Form' : 'Write a Review'}
+            </button>
+          </div>
         </div>
 
-        {/* 4 Review Cards in 2x2 or 4x1 grid matching screenshot */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 mb-20">
+        {/* Optional Add Review Modal / Drawer */}
+        {showAddReview && (
+          <div className="mb-12 max-w-xl mx-auto bg-white p-6 sm:p-7 rounded-2xl border border-[#ebdcc7] shadow-xl animate-in fade-in duration-200">
+            <h3 className="text-base font-bold text-[#241710] mb-3">
+              Share Your Experience with Wood Nido
+            </h3>
+
+            {submitted ? (
+              <div className="flex items-center gap-2 text-green-800 bg-green-50 p-4 rounded-xl text-sm font-medium border border-green-200">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                Thank you! Your review has been added.
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#3d2c20] mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Asif Raza"
+                    className="w-full px-3 py-2 text-xs border border-[#ebdcc7] rounded-lg focus:ring-2 focus:ring-[#b87a2a]/30 focus:border-[#b87a2a] outline-hidden bg-[#faf7f2]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3d2c20] mb-1">
+                      Service Received
+                    </label>
+                    <input
+                      type="text"
+                      value={service}
+                      onChange={(e) => setService(e.target.value)}
+                      placeholder="e.g. Cupboards / Kitchen"
+                      className="w-full px-3 py-2 text-xs border border-[#ebdcc7] rounded-lg focus:ring-2 focus:ring-[#b87a2a]/30 focus:border-[#b87a2a] outline-hidden bg-[#faf7f2]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3d2c20] mb-1">
+                      Rating
+                    </label>
+                    <div className="flex items-center gap-1 pt-1.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setRating(star)}
+                          className="focus:outline-hidden cursor-pointer p-0.5"
+                        >
+                          <Star
+                            className={`w-4 h-4 ${
+                              star <= rating
+                                ? 'fill-[#d89b37] text-[#d89b37]'
+                                : 'text-stone-300'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#3d2c20] mb-1">
+                    Review Comment
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Describe the quality of woodwork, installation, and team professionalism..."
+                    className="w-full px-3 py-2 text-xs border border-[#ebdcc7] rounded-lg focus:ring-2 focus:ring-[#b87a2a]/30 focus:border-[#b87a2a] outline-hidden bg-[#faf7f2]"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#241710] hover:bg-[#382317] text-[#fdf8f0] text-xs font-bold py-2.5 rounded-lg border border-[#d6a55e]/30 transition-colors cursor-pointer"
+                >
+                  Submit Review
+                </button>
+              </form>
+            )}
+          </div>
+        )}
+
+        {/* 2-Column Review Grid matching screenshot */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {reviews.map((rev) => (
             <div
               key={rev.id}
-              className="bg-[#FAF7F2] p-6 sm:p-8 rounded-none border border-[#E6DDD0] hover:border-[#C08A3E] transition-all flex flex-col justify-between"
+              className="flex flex-col space-y-3 p-5 sm:p-6 rounded-2xl bg-white/85 backdrop-blur-xs border border-[#ebdcc7] shadow-xs hover:border-[#b87a2a] hover:shadow-md transition-all duration-200"
             >
-              <div className="space-y-3">
-                {/* 5 Yellow Stars matching screenshot */}
-                <div className="flex items-center gap-1 text-[#F59E0B]">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-current text-amber-500" />
+              {/* 5 Golden Stars */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < rev.rating
+                          ? 'fill-[#d89b37] text-[#d89b37]'
+                          : 'text-stone-200'
+                      }`}
+                    />
                   ))}
                 </div>
-
-                {/* Client Name in bold black matching screenshot */}
-                <div className="flex items-baseline justify-between">
-                  <h3 className="text-base sm:text-lg font-bold text-[#1B1815]">
-                    {rev.clientName}
-                  </h3>
-                  <span className="text-[11px] text-[#867E74] font-medium">
-                    {rev.roleOrLocation}
+                {rev.service && (
+                  <span className="text-[11px] font-semibold text-[#8c5620] bg-[#fbf5eb] px-2.5 py-0.5 rounded-md border border-[#ecdac4]">
+                    {rev.service}
                   </span>
-                </div>
-
-                {/* Review Text matching screenshot verbatim */}
-                <p className="text-xs sm:text-sm text-[#544E47] leading-relaxed text-justify">
-                  {rev.comment}
-                </p>
+                )}
               </div>
 
-              {rev.serviceType && (
-                <div className="pt-4 mt-4 border-t border-[#EAE3D6] text-[11px] text-[#C08A3E] font-semibold flex items-center gap-1">
-                  <span>Service: {rev.serviceType}</span>
-                </div>
-              )}
+              {/* Reviewer Name */}
+              <h3 className="text-sm font-bold text-[#241710] tracking-wide">
+                {rev.name}
+              </h3>
+
+              {/* Review Text */}
+              <p className="text-stone-600 text-xs sm:text-[13px] leading-relaxed text-justify">
+                "{rev.comment}"
+              </p>
             </div>
           ))}
-        </div>
-
-        {/* Showcase Gallery Carousel Slider matching the bottom of screenshot 1 / top of screenshot 2 */}
-        <div className="mt-12">
-          <div className="relative bg-[#181614] rounded-lg overflow-hidden border border-[#D8CEBF] shadow-lg">
-            
-            {/* Carousel images container (3-image split view matching screenshot) */}
-            <div className="relative aspect-16/9 sm:aspect-21/9 w-full overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={carouselIndex}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="w-full h-full grid grid-cols-1 sm:grid-cols-3 gap-0.5"
-                >
-                  <div className="relative h-full overflow-hidden">
-                    <img
-                      src={currentSlide.leftImg}
-                      alt="Project 1"
-                      className="w-full h-full object-cover object-center"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                  <div className="relative h-full overflow-hidden hidden sm:block border-x border-white/20">
-                    <img
-                      src={currentSlide.centerImg}
-                      alt="Project 2"
-                      className="w-full h-full object-cover object-center"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                  <div className="relative h-full overflow-hidden hidden sm:block">
-                    <img
-                      src={currentSlide.rightImg}
-                      alt="Project 3"
-                      className="w-full h-full object-cover object-center"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Left & Right navigation arrows matching screenshot */}
-              <button
-                onClick={prevSlide}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors shadow-md backdrop-blur-xs focus:outline-none"
-                aria-label="Previous showcase"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-
-              <button
-                onClick={nextSlide}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors shadow-md backdrop-blur-xs focus:outline-none"
-                aria-label="Next showcase"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-
-              {/* Bottom caption */}
-              <div className="absolute bottom-3 left-14 right-14 text-center pointer-events-none">
-                <span className="inline-block bg-black/75 backdrop-blur-xs text-white text-xs px-4 py-1.5 rounded-full font-medium">
-                  {currentSlide.caption}
-                </span>
-              </div>
-            </div>
-
-            {/* Dot Pagination indicators matching screenshot (3 dots) */}
-            <div className="py-3 bg-[#11100E] flex items-center justify-center gap-2">
-              {CAROUSEL_SLIDES.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCarouselIndex(idx)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${
-                    idx === carouselIndex ? 'bg-amber-400 w-6' : 'bg-white/30 hover:bg-white/50'
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
-
-          </div>
         </div>
 
       </div>

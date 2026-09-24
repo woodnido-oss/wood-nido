@@ -1,7 +1,6 @@
 {
-  "name": "Wood Nido",
-  "description": "Wood Nido - Premium bespoke furniture, woodworking, polishing, and home renovation with an easy-to-use admin product catalog dashboard.",
+  "name": "Wood Reno - Carpentry & Interior Renovation",
+  "description": "Professional carpentry, woodwork, modular kitchens, custom furniture, and renovation website with client showcase and full-featured backend admin management.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
-

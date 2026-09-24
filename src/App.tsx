@@ -1,131 +1,107 @@
-import React, { useState } from 'react';
-import { WoodStoreProvider, useWoodStore } from './context/WoodStoreContext';
-import { Header } from './components/Header';
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React from 'react';
+import { AppProvider, useApp } from './context/AppContext';
+import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { AboutUs } from './components/AboutUs';
-import { HomeRenovationCategories } from './components/HomeRenovationCategories';
-import { ProductCatalog } from './components/ProductCatalog';
+import { ProductsSection } from './components/ProductsSection';
+import { HomeRenoCategories } from './components/HomeRenoCategories';
 import { RecentProjects } from './components/RecentProjects';
 import { ClientReviews } from './components/ClientReviews';
+import { InteriorShowcaseSlider } from './components/InteriorShowcaseSlider';
 import { LocationMap } from './components/LocationMap';
-import { TransformSpaceCTA } from './components/TransformSpaceCTA';
+import { TransformSection } from './components/TransformSection';
 import { Footer } from './components/Footer';
-import { FloatingWhatsApp } from './components/FloatingWhatsApp';
-import { ProductModal } from './components/ProductModal';
-import { VideoModal } from './components/VideoModal';
+import { WhatsAppButton } from './components/WhatsAppButton';
+import { VideoModal } from './components/modals/VideoModal';
+import { ServiceModal } from './components/modals/ServiceModal';
+import { QuoteModal } from './components/modals/QuoteModal';
+import { AdminLoginModal } from './components/modals/AdminLoginModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
-import { AdminLogin } from './components/admin/AdminLogin';
-import { WoodProduct, WoodProject } from './types';
+import { ShieldCheck, ArrowRight } from 'lucide-react';
 
-const MainAppContent: React.FC = () => {
-  const { viewMode, setViewMode, setSelectedCategory } = useWoodStore();
-  const [activeModalProduct, setActiveModalProduct] = useState<WoodProduct | null>(null);
-  const [activeModalProject, setActiveModalProject] = useState<WoodProject | null>(null);
+const MainContent: React.FC = () => {
+  const { currentView, isAdmin, setCurrentView } = useApp();
 
-  // Check if admin is currently authenticated via session or remember token
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const sessionAuth = sessionStorage.getItem('wood_nido_admin_auth') === 'true';
-      const rememberAuth = localStorage.getItem('wood_nido_admin_remember') === 'true';
-      return sessionAuth || rememberAuth;
-    } catch {
-      return false;
-    }
-  });
-
-  const scrollToSection = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleSelectCategory = (catName: string) => {
-    scrollToSection('products-section');
-  };
-
-  // If owner is in Admin mode, require secure Admin Login credentials
-  if (viewMode === 'admin') {
-    if (!isAdminAuthenticated) {
-      return (
-        <AdminLogin
-          onLoginSuccess={() => setIsAdminAuthenticated(true)}
-          onCancel={() => setViewMode('customer')}
-        />
-      );
-    }
-    return (
-      <AdminDashboard
-        onLogout={() => {
-          setIsAdminAuthenticated(false);
-          setViewMode('customer');
-        }}
-      />
-    );
+  if (currentView === 'admin' && isAdmin) {
+    return <AdminDashboard />;
   }
 
   return (
-    <div className="min-h-screen bg-[#FCFAF6] text-[#1E1B18] flex flex-col font-sans selection:bg-amber-200 selection:text-amber-950">
-      {/* 1. Header Navigation matching screenshot */}
-      <Header onNavigate={scrollToSection} />
+    <div className="min-h-screen bg-[#fbf8f3] text-[#2b1f17] flex flex-col selection:bg-[#c28c46] selection:text-white">
+      {/* Top Admin Quick Switch Bar (if admin is logged in) */}
+      {isAdmin && (
+        <aside aria-label="Admin bar" className="bg-[#241912] text-amber-200 px-4 py-1.5 text-xs flex items-center justify-between border-b border-[#3d291e] z-50">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#dca34f]" />
+            <span className="font-semibold text-stone-200">You are logged in as Administrator</span>
+          </div>
+          <button
+            onClick={() => setCurrentView('admin')}
+            className="flex items-center gap-1 font-bold text-[#dca34f] hover:text-amber-100 transition-colors"
+          >
+            <span>Open Admin Dashboard</span>
+            <ArrowRight className="w-3 h-3" />
+          </button>
+        </aside>
+      )}
 
-      {/* 2. Hero Slider matching screenshot */}
-      <Hero
-        onExploreClick={() => scrollToSection('products-section')}
-        onContactClick={() => scrollToSection('contact-section')}
-      />
+      {/* Header matching screenshot */}
+      <Navbar />
 
-      {/* 3. About Us with stats matching screenshot */}
-      <AboutUs />
+      {/* Main Website Sections */}
+      <main className="flex-1">
+        {/* Hero Section */}
+        <Hero />
 
-      {/* 4. Home Renovation 9-Category Grid & Gallery matching screenshot */}
-      <HomeRenovationCategories onSelectCategory={handleSelectCategory} />
+        {/* About Us Section */}
+        <AboutUs />
 
-      {/* 5. Handcrafted Wood Product Listings & Catalog */}
-      <ProductCatalog
-        onProductClick={(product) => setActiveModalProduct(product)}
-        onOpenAdminAdd={() => setViewMode('admin')}
-      />
+        {/* Custom Wood Products Showcase (Dedicated Section without prices) */}
+        <ProductsSection />
 
-      {/* 6. Our Recent Projects (YouTube video style) matching screenshot */}
-      <RecentProjects
-        onProjectClick={(project) => setActiveModalProject(project)}
-      />
+        {/* Our Home Reno - 9 Service Categories & Gallery Showcase */}
+        <HomeRenoCategories />
 
-      {/* 7. What Our Clients Say & Carousel Slider matching screenshot */}
-      <ClientReviews />
+        {/* Our Recent Projects - 14 YouTube Style Project Cards */}
+        <RecentProjects />
 
-      {/* 8. Showroom & Workshop Location Map matching screenshot */}
-      <LocationMap />
+        {/* What Our Client S| - Reviews & Ratings */}
+        <ClientReviews />
 
-      {/* 9. Transform Your Space CTA & Consultation Booking Form */}
-      <TransformSpaceCTA />
+        {/* 3-Panel Interior Split Slider */}
+        <InteriorShowcaseSlider />
 
-      {/* 10. Footer matching screenshot */}
-      <Footer onNavigate={scrollToSection} />
+        {/* Islamabad G-9/1 Interactive Map */}
+        <LocationMap />
 
-      {/* 11. Floating WhatsApp Chat Icon matching screenshot */}
-      <FloatingWhatsApp />
+        {/* Transform Your Space & Instant Booking / Quote Form */}
+        <TransformSection />
+      </main>
 
-      {/* Modals */}
-      <ProductModal
-        product={activeModalProduct}
-        onClose={() => setActiveModalProduct(null)}
-      />
+      {/* Dark Footer matching screenshot */}
+      <Footer />
 
-      <VideoModal
-        project={activeModalProject}
-        onClose={() => setActiveModalProject(null)}
-      />
+      {/* Floating WhatsApp Action Button */}
+      <WhatsAppButton />
+
+      {/* Interactive Modals */}
+      <VideoModal />
+      <ServiceModal />
+      <QuoteModal />
+      <AdminLoginModal />
     </div>
   );
 };
 
 export default function App() {
   return (
-    <WoodStoreProvider>
-      <MainAppContent />
-    </WoodStoreProvider>
+    <AppProvider>
+      <MainContent />
+    </AppProvider>
   );
 }

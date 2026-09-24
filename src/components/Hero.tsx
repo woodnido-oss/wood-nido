@@ -1,302 +1,161 @@
-import React, { useState, useEffect } from 'react';
-import { useWoodStore } from '../context/WoodStoreContext';
-import { Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { initialHeroSlides } from '../data/initialData';
+import React, { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
-interface HeroProps {
-  onExploreClick: () => void;
-  onContactClick: () => void;
-}
+export const Hero: React.FC = () => {
+  const { siteConfig, setQuoteModalOpen } = useApp();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-export const Hero: React.FC<HeroProps> = ({ onExploreClick, onContactClick }) => {
-  const { siteSettings } = useWoodStore();
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const slides = [
+    {
+      title1: siteConfig.heroHeadline1 || 'MODERN',
+      title2: siteConfig.heroHeadline2 || 'FURNITURE',
+      price: siteConfig.heroStartingPrice || 'Start From 15k',
+      subtext: siteConfig.heroSubtext || 'possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart',
+      image: siteConfig.heroImage || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1000&q=80',
+      badge: 'Bespoke Solid Wood',
+    },
+    {
+      title1: 'MODULAR',
+      title2: 'KITCHEN',
+      price: 'Start From 95k',
+      subtext: 'Transform your cooking experience with precision engineered cabinetry, soft-close hardware, and scratch-resistant finishes.',
+      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1000&q=80',
+      badge: 'Acrylic & UV Finish',
+    },
+    {
+      title1: 'LUXURY',
+      title2: 'WARDROBES',
+      price: 'Start From 45k',
+      subtext: 'Tailored sliding and walk-in closets with integrated LED profile lighting, custom shoe racks, and vanity dressers.',
+      image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1000&q=80',
+      badge: 'Fitted Master Closets',
+    },
+  ];
 
-  // Touch swipe states
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchEndX, setTouchEndX] = useState<number | null>(null);
-
-  // Prioritize admin-saved heroSlides from siteSettings, fallback to initial if empty
-  const slides = siteSettings.heroSlides && siteSettings.heroSlides.length > 0
-    ? siteSettings.heroSlides
-    : initialHeroSlides;
+  const slide = slides[currentSlide];
 
   const nextSlide = () => {
-    setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlideIndex((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   };
-
-  const goToSlide = (index: number) => {
-    setCurrentSlideIndex(index);
-  };
-
-  // Finger swipe handler for mobile/touch devices
-  const minSwipeDistance = 45;
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEndX(null);
-    setTouchStartX(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEndX(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStartX === null || touchEndX === null) return;
-    const distance = touchStartX - touchEndX;
-    if (distance > minSwipeDistance) {
-      nextSlide();
-    } else if (distance < -minSwipeDistance) {
-      prevSlide();
-    }
-  };
-
-  // Auto advance every 6 seconds, pauses on mouse hover
-  useEffect(() => {
-    if (isPaused || slides.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [isPaused, slides.length]);
-
-  const safeIndex = currentSlideIndex < slides.length ? currentSlideIndex : 0;
-  const currentSlide = slides[safeIndex] || initialHeroSlides[0];
 
   return (
-    <section
-      id="hero-section"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      className="relative w-full md:min-h-[580px] lg:min-h-[640px] bg-[#FAF8F5] border-b border-[#EAE4D8] overflow-hidden select-none"
-    >
-      {/* ========================================================================= */}
-      {/* DESKTOP VIEW (md: and above): Full Panoramic Poster Layout */}
-      {/* ========================================================================= */}
-      <div className="hidden md:flex relative w-full flex-col justify-between flex-1 min-h-[580px] lg:min-h-[640px]">
-        {/* Full Panoramic Background Image */}
-        <div className="absolute inset-0 w-full h-full overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={safeIndex}
-              initial={{ opacity: 0, scale: 1.03 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.65, ease: 'easeInOut' }}
-              className="absolute inset-0 w-full h-full"
-            >
-              <img
-                src={currentSlide.imageUrl}
-                alt={currentSlide.itemTitle || currentSlide.headline}
-                className="w-full h-full object-cover object-center"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (!target.src.includes('photo-1586023492125')) {
-                    target.src = 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1800&q=85';
-                  }
-                }}
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
+    <section id="home" className="relative bg-gradient-to-b from-[#fdfbf8] via-[#faf6ef] to-[#f6f0e4] overflow-hidden py-10 lg:py-20 border-b border-[#ebdcc7]/80">
+      {/* Subtle organic warm ambiance */}
+      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[650px] h-[650px] rounded-full bg-[#f3e7d5]/50 -z-0 blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 left-10 w-96 h-96 rounded-full bg-[#faefe0]/60 -z-0 blur-3xl pointer-events-none" />
 
-        {/* Seamless Left Scrim / Gradient Overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(to right, #FAF8F4 0%, #FAF8F4 28%, rgba(250, 248, 244, 0.96) 38%, rgba(250, 248, 244, 0.75) 50%, rgba(250, 248, 244, 0) 68%)'
-          }}
-        />
-
-        {/* Desktop Poster Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full pt-14 lg:pt-16 pb-6 flex-1 flex flex-col justify-center">
-          <div className="max-w-xl lg:max-w-2xl">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={safeIndex}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.35, ease: 'easeOut' }}
-                className="space-y-4"
-              >
-                <div className="inline-flex items-center gap-1.5 text-xs font-bold tracking-wider text-[#936224] uppercase">
-                  <Sparkles className="w-3.5 h-3.5 text-[#936224]" />
-                  <span>{currentSlide.badge || 'Solid Hardwood Craft'}</span>
-                </div>
-
-                <h1 className="text-4xl md:text-5xl lg:text-[54px] font-black uppercase text-[#141210] font-sans tracking-tight leading-[1.06]">
-                  {currentSlide.headline}
-                </h1>
-
-                <div>
-                  <h2 className="text-lg md:text-xl font-bold text-[#86531A] tracking-tight">
-                    {currentSlide.price}
-                  </h2>
-                </div>
-
-                <p className="text-sm md:text-base text-[#575048] leading-relaxed max-w-lg">
-                  {currentSlide.subtext}
-                </p>
-
-                <div className="pt-4 flex items-center gap-4">
-                  <button
-                    id="hero-read-more-btn-desktop"
-                    onClick={onExploreClick}
-                    className="bg-[#181614] hover:bg-black text-white text-xs font-bold tracking-widest uppercase px-8 py-3.5 transition-all shadow-xs active:scale-98 cursor-pointer text-center whitespace-nowrap"
-                  >
-                    READ MORE
-                  </button>
-
-                  <button
-                    id="hero-get-quote-btn-desktop"
-                    onClick={onContactClick}
-                    className="bg-transparent hover:bg-[#181614] hover:text-white border border-[#181614] text-[#181614] text-xs font-bold tracking-widest uppercase px-7 py-3.5 transition-all active:scale-98 cursor-pointer text-center whitespace-nowrap"
-                  >
-                    GET FREE QUOTE
-                  </button>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Desktop Centered Indicator Dots */}
-        <div className="relative z-10 w-full pb-6 flex items-center justify-center">
-          <div className="flex items-center gap-2 px-3.5 py-1.5 bg-black/25 backdrop-blur-xs rounded-full">
-            {slides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => goToSlide(idx)}
-                className={`transition-all rounded-full cursor-pointer ${
-                  idx === safeIndex
-                    ? 'w-7 h-2 bg-[#C08A3E]'
-                    : 'w-2 h-2 bg-white/70 hover:bg-white'
-                }`}
-                title={`Slide ${idx + 1}`}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* MOBILE PHONE VIEW (< md): Full Photo Display + Compact Details */}
-      {/* ========================================================================= */}
-      <div className="flex md:hidden flex-col w-full bg-[#FAF8F5]">
-        <div className="relative w-full h-[210px] sm:h-[260px] bg-[#1a1816] overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={safeIndex}
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.45, ease: 'easeInOut' }}
-              className="absolute inset-0 w-full h-full"
-            >
-              <img
-                src={currentSlide.imageUrl}
-                alt={currentSlide.itemTitle || currentSlide.headline}
-                className="w-full h-full object-cover object-center"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (!target.src.includes('photo-1586023492125')) {
-                    target.src = 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1800&q=85';
-                  }
-                }}
-              />
-            </motion.div>
-          </AnimatePresence>
-
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/25 via-transparent to-black/35" />
-
-          <div className="absolute top-2.5 right-2.5 z-10 bg-black/75 backdrop-blur-xs text-[10px] font-bold text-[#E5B56A] uppercase px-2 py-0.5 rounded shadow-xs">
-            {currentSlide.badge || 'Solid Wood'}
-          </div>
-
-          <div className="absolute bottom-2 left-2.5 right-2.5 z-10 text-white/90 text-[11px] font-medium truncate drop-shadow-sm">
-            {currentSlide.itemTitle || currentSlide.headline}
-          </div>
-        </div>
-
-        <div className="px-4 py-3 space-y-2">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={safeIndex}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="space-y-1.5"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-extrabold text-[#936224] uppercase tracking-wider">
-                  {currentSlide.badge || 'Solid Hardwood'}
-                </span>
-                <span className="text-xs font-bold text-[#86531A]">
-                  {currentSlide.price}
-                </span>
-              </div>
-
-              <h1 className="text-lg sm:text-2xl font-black uppercase text-[#141210] font-sans tracking-tight leading-snug">
-                {currentSlide.headline}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* Left Column: Typography & Controls */}
+          <div className="lg:col-span-6 flex flex-col justify-center space-y-6">
+            
+            {/* Title */}
+            <div className="space-y-1">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-[#241710] uppercase leading-[0.95]" style={{ fontFamily: "'Cinzel', 'Playfair Display', Georgia, serif" }}>
+                {slide.title1}
               </h1>
-
-              <p className="text-[11px] text-[#575048] leading-relaxed line-clamp-2">
-                {currentSlide.subtext}
-              </p>
-
-              <div className="pt-1.5 flex items-center gap-2">
-                <button
-                  id="hero-read-more-btn-mobile"
-                  onClick={onExploreClick}
-                  className="flex-1 bg-[#181614] active:bg-black text-white text-[10px] font-bold tracking-wider uppercase py-2 px-3 rounded-xs shadow-xs text-center cursor-pointer"
-                >
-                  READ MORE
-                </button>
-
-                <button
-                  id="hero-get-quote-btn-mobile"
-                  onClick={onContactClick}
-                  className="flex-1 bg-transparent active:bg-[#181614] active:text-white border border-[#181614] text-[#181614] text-[10px] font-bold tracking-wider uppercase py-2 px-3 rounded-xs text-center cursor-pointer"
-                >
-                  GET FREE QUOTE
-                </button>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Centered Indicator Dots for Mobile */}
-          <div className="pt-2 pb-1 flex items-center justify-center">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-black/10 rounded-full">
-              {slides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => goToSlide(idx)}
-                  className={`transition-all rounded-full cursor-pointer ${
-                    idx === safeIndex
-                      ? 'w-5 h-1.5 bg-[#C08A3E]'
-                      : 'w-1.5 h-1.5 bg-black/30 hover:bg-black/50'
-                  }`}
-                  title={`Slide ${idx + 1}`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight bg-gradient-to-r from-[#b97a29] via-[#dca34f] to-[#9e631b] bg-clip-text text-transparent uppercase leading-[0.95]" style={{ fontFamily: "'Cinzel', 'Playfair Display', Georgia, serif" }}>
+                {slide.title2}
+              </h1>
             </div>
+
+            {/* Price & Description */}
+            <div className="space-y-3 max-w-lg">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#f6ecdd] border border-[#e4d0b2] shadow-2xs">
+                <span className="text-[11px] uppercase tracking-wider font-semibold text-[#8c5620]">Starting From</span>
+                <span className="text-sm font-extrabold text-[#2a1a10]">{slide.price}</span>
+              </div>
+              <p className="text-stone-600 text-xs sm:text-sm leading-relaxed lowercase first-letter:uppercase">
+                {slide.subtext}
+              </p>
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                onClick={() => setQuoteModalOpen(true)}
+                className="bg-[#241710] hover:bg-[#382317] text-[#fdf8f0] text-xs tracking-widest uppercase font-bold px-8 py-3.5 rounded-lg border border-[#d6a55e]/40 shadow-md hover:shadow-xl hover:border-[#d6a55e]/80 transition-all duration-200 inline-block active:scale-98 cursor-pointer"
+              >
+                READ MORE
+              </button>
+              <button
+                onClick={() => {
+                  const el = document.getElementById('products');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[#643d1a] hover:text-[#241710] hover:bg-[#f6eee0] text-xs tracking-widest uppercase font-bold px-5 py-3.5 rounded-lg border border-[#ebd8c2] transition-colors cursor-pointer"
+              >
+                View Catalog
+              </button>
+            </div>
+
+            {/* Slider Navigation: ← ─── → 01 */}
+            <div className="pt-6 sm:pt-10 flex items-center gap-4">
+              <button
+                onClick={prevSlide}
+                className="p-1.5 rounded-full text-[#382315] hover:text-[#b87a2a] hover:bg-[#f3e7d6] transition-colors focus:outline-hidden cursor-pointer"
+                aria-label="Previous slide"
+              >
+                <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
+              </button>
+
+              {/* Progress track */}
+              <div className="relative w-28 sm:w-36 h-[3px] bg-[#e4d6c4] rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#b87a2a] to-[#dca34f] rounded-full transition-all duration-300"
+                  style={{
+                    width: `${((currentSlide + 1) / slides.length) * 100}%`,
+                  }}
+                />
+              </div>
+
+              <button
+                onClick={nextSlide}
+                className="p-1.5 rounded-full text-[#382315] hover:text-[#b87a2a] hover:bg-[#f3e7d6] transition-colors focus:outline-hidden cursor-pointer"
+                aria-label="Next slide"
+              >
+                <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+              </button>
+
+              <span className="text-xs font-mono font-bold text-[#724a25] ml-2 tracking-widest">
+                0{currentSlide + 1}
+              </span>
+            </div>
+
           </div>
+
+          {/* Right Column: Hero Visual Cutout & Warm Organic Shape */}
+          <div className="lg:col-span-6 relative flex items-center justify-center">
+            
+            {/* Wooden circular art ring backdrop */}
+            <div className="relative w-full max-w-[500px] aspect-square rounded-full p-4 sm:p-8 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-2 border-[#d9c4aa]/70 bg-gradient-to-tr from-[#ece0ce] via-[#faf5ec] to-[#f4ebe0] shadow-[0_10px_40px_rgba(82,51,21,0.08)]" />
+
+              {/* Wooden cutout furniture image */}
+              <div className="relative z-10 w-full h-full flex items-center justify-center overflow-hidden rounded-full p-2">
+                <img
+                  src={slide.image}
+                  alt={`${slide.title1} ${slide.title2}`}
+                  className="w-full h-full object-cover rounded-full shadow-2xl transition-all duration-500 hover:scale-105"
+                  loading="eager"
+                />
+              </div>
+
+              {/* Floating Badge */}
+              <div className="absolute bottom-6 left-6 z-20 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg border border-[#ebdcc7] text-xs font-semibold text-[#422a19] flex items-center gap-1.5">
+                <span className="text-[#b87a2a]">✦</span>
+                <span>{slide.badge}</span>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
     </section>
