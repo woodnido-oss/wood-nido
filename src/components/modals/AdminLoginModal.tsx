@@ -14,6 +14,7 @@ export const AdminLoginModal: React.FC = () => {
 
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showMasterKey, setShowMasterKey] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [mode, setMode] = useState<'login' | 'reset'>('login');
@@ -64,7 +65,7 @@ export const AdminLoginModal: React.FC = () => {
       setPassword('');
       setError('');
     } else {
-      setError('Password ghalat hai. Baraye meherbani sahi password darj karein ya Master Key (96274) se reset karein.');
+      setError('Password ghalat hai. Baraye meherbani sahi password darj karein.');
     }
   };
 
@@ -73,7 +74,7 @@ export const AdminLoginModal: React.FC = () => {
     setResetError('');
 
     if (masterKeyInput.trim() !== '96274') {
-      setResetError('Master Key ghalat hai! Sahi Master Key 96274 darj karein.');
+      setResetError('Master Key ghalat hai! Baraye meherbani durust Master Key darj karein.');
       return;
     }
 
@@ -101,8 +102,25 @@ export const AdminLoginModal: React.FC = () => {
     }
   };
 
+  const handleClose = () => {
+    setAdminLoginModalOpen(false);
+    setMode('login');
+    setError('');
+    setResetError('');
+    try {
+      if (window.location.hash.includes('admin') || window.location.hash.includes('login')) {
+        window.history.replaceState(null, '', window.location.pathname.replace(/\/(admin|login)(\/)?$/i, '') || '/');
+      }
+    } catch {
+      // Safe fallback
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150">
+    <div 
+      onClick={handleClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150"
+    >
       <div 
         className="relative w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-2xl border border-stone-200"
         onClick={(e) => e.stopPropagation()}
@@ -121,12 +139,7 @@ export const AdminLoginModal: React.FC = () => {
             </div>
           </div>
           <button
-            onClick={() => {
-              setAdminLoginModalOpen(false);
-              setMode('login');
-              setError('');
-              setResetError('');
-            }}
+            onClick={handleClose}
             className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -214,13 +227,13 @@ export const AdminLoginModal: React.FC = () => {
                 className="text-xs text-[#b57a2c] hover:text-[#8f5e1f] font-bold hover:underline inline-flex items-center gap-1.5 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Password bhool gaye? Master Key (96274) se reset karein</span>
+                <span>Password bhool gaye? Master Key se reset karein</span>
               </button>
             </div>
           </form>
         )}
 
-        {/* MODE 2: RESET PASSWORD VIA MASTER KEY 96274 */}
+        {/* MODE 2: RESET PASSWORD VIA MASTER KEY */}
         {mode === 'reset' && (
           <form onSubmit={handleResetSubmit} className="p-6 space-y-4">
             <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-1">
@@ -229,23 +242,33 @@ export const AdminLoginModal: React.FC = () => {
                 Master Key Password Reset
               </p>
               <p className="text-[11px] text-amber-900">
-                Apna naya password set karne ke liye Master Key <strong>96274</strong> darj karein.
+                Apna naya password set karne ke liye authorized Master Key darj karein.
               </p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1">
-                Master Key (مخصوص ماسٹر کی)
+              <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center justify-between">
+                <span>Master Key (ماسٹر کی)</span>
               </label>
-              <input
-                type="text"
-                required
-                autoFocus
-                value={masterKeyInput}
-                onChange={(e) => setMasterKeyInput(e.target.value)}
-                placeholder="Enter Master Key (96274)"
-                className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#c28c46] outline-hidden font-mono tracking-wider"
-              />
+              <div className="relative">
+                <input
+                  type={showMasterKey ? 'text' : 'password'}
+                  required
+                  autoFocus
+                  value={masterKeyInput}
+                  onChange={(e) => setMasterKeyInput(e.target.value)}
+                  placeholder="Enter Master Key"
+                  className="w-full pl-3 pr-10 py-2.5 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#c28c46] outline-hidden font-mono tracking-wider"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowMasterKey(!showMasterKey)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors"
+                  title={showMasterKey ? 'Hide key' : 'Show key'}
+                >
+                  {showMasterKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
             </div>
 
             <div>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { MapPin, ExternalLink, Navigation, Settings } from 'lucide-react';
+import { MapPin, ExternalLink, Navigation } from 'lucide-react';
 
 export const LocationMap: React.FC = () => {
-  const { siteConfig, isAdmin, setCurrentView } = useApp();
+  const { siteConfig } = useApp();
 
   const query = encodeURIComponent(
     siteConfig.mapQuery || siteConfig.address || 'Faizi Plaza Soan Garden Block B Islamabad'
@@ -48,18 +48,6 @@ export const LocationMap: React.FC = () => {
               <span>Open in Maps</span>
               <ExternalLink className="w-3.5 h-3.5 text-[#b87a2a]" />
             </a>
-
-            {/* Admin Quick Edit Button */}
-            {isAdmin && (
-              <button
-                onClick={() => setCurrentView('admin')}
-                className="bg-[#241710]/95 hover:bg-[#241710] text-amber-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg shadow-md border border-[#d6a55e]/40 flex items-center gap-1 transition-all cursor-pointer"
-                title="Change location in Admin Panel"
-              >
-                <Settings className="w-3 h-3 text-[#dca34f]" />
-                <span>Edit Location</span>
-              </button>
-            )}
           </div>
 
           {/* Location details card floating at bottom */}

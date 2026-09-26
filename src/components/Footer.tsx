@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { MapPin, Mail, Phone, Lock, ChevronRight } from 'lucide-react';
+import { MapPin, Mail, Phone, ChevronRight } from 'lucide-react';
 import { WoodNidoLogo } from './WoodNidoLogo';
 
 export const Footer: React.FC = () => {
-  const { siteConfig, isAdmin, setCurrentView, setAdminLoginModalOpen } = useApp();
+  const { siteConfig } = useApp();
 
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -190,19 +190,6 @@ export const Footer: React.FC = () => {
           <p>
             Copyright © {new Date().getFullYear()} <strong className="text-amber-200">Wood Nido</strong> (woodnido.com) | Powered by <strong className="text-amber-200">Arteanalytics</strong>
           </p>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => {
-                if (isAdmin) setCurrentView('admin');
-                else setAdminLoginModalOpen(true);
-              }}
-              className="hover:text-amber-200 transition-colors flex items-center gap-1 text-[11px] cursor-pointer"
-            >
-              <Lock className="w-3 h-3 text-[#dca34f]" />
-              Admin Portal
-            </button>
-          </div>
         </div>
 
       </div>

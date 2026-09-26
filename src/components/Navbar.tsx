@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ChevronDown, Menu, X, Shield, Phone, LayoutDashboard } from 'lucide-react';
+import { ChevronDown, Menu, X, Phone } from 'lucide-react';
 import { WoodNidoLogo } from './WoodNidoLogo';
 
 export const Navbar: React.FC = () => {
-  const { siteConfig, setQuoteModalOpen, isAdmin, setCurrentView, setAdminLoginModalOpen } = useApp();
+  const { siteConfig, setQuoteModalOpen } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdown, setServicesDropdown] = useState(false);
   const [projectsDropdown, setProjectsDropdown] = useState(false);
@@ -160,7 +160,7 @@ export const Navbar: React.FC = () => {
             </button>
           </nav>
 
-          {/* Action Buttons: Get in Touch & Admin */}
+          {/* Action Buttons: Phone & Get in Touch */}
           <div className="hidden sm:flex items-center gap-3">
             {/* Phone quick call */}
             <a
@@ -172,26 +172,6 @@ export const Navbar: React.FC = () => {
               <span>{siteConfig.displayPhone}</span>
             </a>
 
-            {/* Admin Toggle */}
-            {isAdmin ? (
-              <button
-                onClick={() => setCurrentView('admin')}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-lg border border-amber-300 transition-colors shadow-xs"
-                title="Open Backend Admin Panel"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-amber-700" />
-                Admin Panel
-              </button>
-            ) : (
-              <button
-                onClick={() => setAdminLoginModalOpen(true)}
-                className="p-2 text-stone-600 hover:text-[#8a5522] hover:bg-[#f5ece0] rounded-lg transition-colors"
-                title="Admin Login"
-              >
-                <Shield className="w-4 h-4" />
-              </button>
-            )}
-
             <button
               onClick={() => setQuoteModalOpen(true)}
               className="bg-[#241710] hover:bg-[#382317] text-[#fdf8f0] text-sm font-semibold px-6 py-2.5 rounded-lg border border-[#d6a55e]/40 transition-all duration-200 shadow-md hover:shadow-lg active:scale-98 tracking-wide cursor-pointer"
@@ -202,17 +182,6 @@ export const Navbar: React.FC = () => {
 
           {/* Mobile hamburger */}
           <div className="flex sm:hidden items-center gap-2">
-            <button
-              onClick={() => {
-                if (isAdmin) setCurrentView('admin');
-                else setAdminLoginModalOpen(true);
-              }}
-              className="p-2 text-stone-500 hover:text-stone-800"
-              title="Admin"
-            >
-              <Shield className="w-5 h-5" />
-            </button>
-
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-stone-700 hover:bg-stone-200/50 focus:outline-hidden"

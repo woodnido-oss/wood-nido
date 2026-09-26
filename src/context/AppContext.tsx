@@ -185,6 +185,75 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('woodreno_leads', JSON.stringify(leads));
   }, [leads]);
 
+  // URL Route listener: Automatically opens admin login or admin dashboard
+  // when user accesses /admin, #admin, ?admin, /login, #login, or ?login
+  useEffect(() => {
+    const handleUrlRoute = () => {
+      try {
+        const path = window.location.pathname.toLowerCase();
+        const hash = window.location.hash.toLowerCase();
+        const search = window.location.search.toLowerCase();
+
+        const isAdminUrl =
+          path.endsWith('/admin') ||
+          path.endsWith('/login') ||
+          path.includes('/admin/') ||
+          path.includes('/login/') ||
+          hash === '#admin' ||
+          hash === '#login' ||
+          hash.startsWith('#admin') ||
+          hash.startsWith('#login') ||
+          search.includes('admin') ||
+          search.includes('login');
+
+        if (isAdminUrl) {
+          const isAuth = sessionStorage.getItem('woodreno_admin_auth') === 'true';
+          if (isAuth) {
+            setCurrentView('admin');
+            setAdminLoginModalOpen(false);
+          } else {
+            setCurrentView('website');
+            setAdminLoginModalOpen(true);
+          }
+        }
+      } catch (err) {
+        console.error('Error handling admin URL route:', err);
+      }
+    };
+
+    handleUrlRoute();
+
+    window.addEventListener('popstate', handleUrlRoute);
+    window.addEventListener('hashchange', handleUrlRoute);
+
+    return () => {
+      window.removeEventListener('popstate', handleUrlRoute);
+      window.removeEventListener('hashchange', handleUrlRoute);
+    };
+  }, []);
+
+  // Sync URL when currentView changes
+  useEffect(() => {
+    try {
+      if (currentView === 'admin') {
+        if (!window.location.hash.includes('admin') && !window.location.pathname.includes('/admin')) {
+          window.history.replaceState(null, '', '#admin');
+        }
+      } else if (currentView === 'website' && !adminLoginModalOpen) {
+        if (
+          window.location.hash.includes('admin') ||
+          window.location.hash.includes('login') ||
+          window.location.pathname.includes('/admin') ||
+          window.location.pathname.includes('/login')
+        ) {
+          window.history.replaceState(null, '', window.location.pathname.replace(/\/(admin|login)(\/)?$/i, '') || '/');
+        }
+      }
+    } catch {
+      // Safe fallback if history API is restricted
+    }
+  }, [currentView, adminLoginModalOpen]);
+
   const updateSiteConfig = (updates: Partial<SiteConfig>) => {
     setSiteConfig((prev) => ({ ...prev, ...updates }));
   };
@@ -333,6 +402,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsAdmin(false);
     sessionStorage.removeItem('woodreno_admin_auth');
     setCurrentView('website');
+    try {
+      window.history.replaceState(null, '', window.location.pathname.replace(/\/(admin|login)(\/)?$/i, '') || '/');
+    } catch {
+      // Safe fallback
+    }
   };
 
   return (
