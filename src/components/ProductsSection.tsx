@@ -62,12 +62,12 @@ export const ProductsSection: React.FC = () => {
           ))}
         </div>
 
-        {/* Products Grid - Note: NO PRICES DISPLAYED per user requirement */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+        {/* Products Grid - 2 columns on mobile (2 2 2) and 4 on lg */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-2xl overflow-hidden border border-[#ebdcc7] shadow-xs hover:border-[#b87a2a] hover:shadow-[0_12px_32px_rgba(67,34,12,0.08)] transition-all duration-300 flex flex-col justify-between group"
+              className="bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-[#ebdcc7] shadow-xs hover:border-[#b87a2a] hover:shadow-[0_12px_32px_rgba(67,34,12,0.08)] transition-all duration-300 flex flex-col justify-between group"
             >
               <div>
                 {/* Product Image */}
@@ -83,34 +83,34 @@ export const ProductsSection: React.FC = () => {
                   />
                   
                   {/* Category Tag */}
-                  <span className="absolute top-3 left-3 bg-white/95 backdrop-blur-xs text-[#382315] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-xs border border-[#ebdcc7]">
+                  <span className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-white/95 backdrop-blur-xs text-[#382315] text-[8px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-sm sm:rounded-md shadow-xs border border-[#ebdcc7]">
                     {product.category}
                   </span>
 
-                  {/* Ready to Build / In Stock Badge */}
-                  <span className="absolute top-3 right-3 bg-[#244528]/90 text-[#f0f9f1] text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-xs border border-[#487852]/40 flex items-center gap-1">
-                    <Check className="w-3 h-3 stroke-[3]" />
-                    <span>Custom Made</span>
+                  {/* Ready to Build / Custom Made Badge */}
+                  <span className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-[#244528]/90 text-[#f0f9f1] text-[8px] sm:text-[10px] font-semibold px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full shadow-xs border border-[#487852]/40 flex items-center gap-0.5 sm:gap-1">
+                    <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3]" />
+                    <span>Custom</span>
                   </span>
 
                   {/* Hover Quick View overlay */}
                   <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="bg-[#241710] text-[#fdf8f0] text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-lg border border-[#d6a55e]/40">
-                      View Specifications
+                    <span className="bg-[#241710] text-[#fdf8f0] text-[10px] sm:text-xs font-bold px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-md sm:rounded-lg shadow-lg border border-[#d6a55e]/40">
+                      View Specs
                     </span>
                   </div>
                 </div>
 
                 {/* Product Details */}
-                <div className="p-4 sm:p-5">
+                <div className="p-2.5 sm:p-5">
                   <h3 
                     onClick={() => setSelectedProduct(product)}
-                    className="font-bold text-[#241710] text-sm sm:text-base leading-snug group-hover:text-[#b87a2a] transition-colors cursor-pointer line-clamp-1"
+                    className="font-bold text-[#241710] text-xs sm:text-base leading-snug group-hover:text-[#b87a2a] transition-colors cursor-pointer line-clamp-1"
                   >
                     {product.title}
                   </h3>
                   
-                  <p className="text-xs text-stone-600 mt-1.5 line-clamp-2 leading-relaxed">
+                  <p className="text-[10px] sm:text-xs text-stone-600 mt-1 sm:mt-1.5 line-clamp-1 sm:line-clamp-2 leading-relaxed">
                     {product.description}
                   </p>
 

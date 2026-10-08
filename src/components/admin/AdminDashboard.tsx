@@ -29,6 +29,9 @@ import {
   Play,
   ImagePlus,
   Package,
+  X,
+  Menu,
+  ChevronRight,
 } from 'lucide-react';
 import { ServiceItem, ProjectItem, ReviewItem, LeadItem, ProductItem } from '../../types';
 
@@ -64,7 +67,8 @@ export const AdminDashboard: React.FC = () => {
     setCurrentView,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'leads' | 'products' | 'services' | 'projects' | 'photos' | 'reviews' | 'location' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'leads' | 'products' | 'services' | 'projects' | 'photos' | 'reviews' | 'settings'>('overview');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [leadSearch, setLeadSearch] = useState('');
   const [leadStatusFilter, setLeadStatusFilter] = useState<string>('all');
 
@@ -84,31 +88,38 @@ export const AdminDashboard: React.FC = () => {
   const [isAddingService, setIsAddingService] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
   const [isAddingProject, setIsAddingProject] = useState(false);
+  const [projectUrlInputs, setProjectUrlInputs] = useState<Record<string, string>>({});
+  const [projectSavedBadge, setProjectSavedBadge] = useState<Record<string, boolean>>({});
+  const [previewVideoItem, setPreviewVideoItem] = useState<ProjectItem | null>(null);
+
+  const handleQuickSaveProjectUrl = (project: ProjectItem) => {
+    const inputVal = projectUrlInputs[project.id] !== undefined ? projectUrlInputs[project.id] : project.youtubeId;
+    if (!inputVal || !inputVal.trim()) return;
+
+    const cleanId = extractYouTubeId(inputVal);
+    const autoThumb = `https://img.youtube.com/vi/${cleanId}/hqdefault.jpg`;
+
+    updateProject(project.id, {
+      youtubeId: cleanId,
+      thumbnail: autoThumb,
+    });
+
+    setProjectSavedBadge((prev) => ({ ...prev, [project.id]: true }));
+    setTimeout(() => {
+      setProjectSavedBadge((prev) => ({ ...prev, [project.id]: false }));
+    }, 2500);
+  };
   const [editingReview, setEditingReview] = useState<ReviewItem | null>(null);
   const [isAddingReview, setIsAddingReview] = useState(false);
 
   // Quick settings form
   const [settingsForm, setSettingsForm] = useState({ ...siteConfig });
   const [settingsSaved, setSettingsSaved] = useState(false);
-  const [locationSaved, setLocationSaved] = useState(false);
 
   // Sync settingsForm when siteConfig updates
   useEffect(() => {
     setSettingsForm({ ...siteConfig });
   }, [siteConfig]);
-
-  const handleSaveLocation = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateSiteConfig({
-      locationName: settingsForm.locationName,
-      address: settingsForm.address,
-      mapQuery: settingsForm.mapQuery,
-      mapZoom: settingsForm.mapZoom,
-      mapUrl: settingsForm.mapUrl,
-    });
-    setLocationSaved(true);
-    setTimeout(() => setLocationSaved(false), 3000);
-  };
 
   // New service form state
   const [serviceForm, setServiceForm] = useState({
@@ -204,9 +215,19 @@ export const AdminDashboard: React.FC = () => {
     <div className="min-h-screen bg-stone-100 text-stone-900 flex flex-col font-sans">
       
       {/* Top Header */}
-      <header className="bg-stone-900 text-white sticky top-0 z-30 shadow-md">
+      <header className="bg-stone-900 text-white sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-4">
+            {/* Mobile Sidebar Hamburger Toggle */}
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden p-2 -ml-1 rounded-xl bg-stone-800 hover:bg-stone-700 text-[#e5be7d] border border-stone-700/80 transition-all cursor-pointer flex items-center justify-center"
+              aria-label="Open Admin Menu"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
             <div className="flex items-center gap-1.5 sm:gap-2.5">
               <WoodNidoLogo size="sm" variant="dark" />
               <span className="bg-[#c28c46] text-stone-950 text-[9px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-xs">
@@ -235,46 +256,152 @@ export const AdminDashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Layout */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8 w-full flex-1 flex flex-col md:flex-row gap-4 sm:gap-6">
-        
-        {/* Mobile-Only Horizontal Scrollable Tabs Bar */}
-        <div className="md:hidden sticky top-14 z-20 bg-stone-100/95 backdrop-blur-md pt-1 pb-2 -mx-3 px-3 border-b border-stone-200 overflow-x-auto flex items-center gap-1.5 no-scrollbar">
-          {[
-            { id: 'overview', label: 'Overview', icon: TrendingUp, count: null },
-            { id: 'leads', label: 'Leads', icon: Users, count: leads.length },
-            { id: 'products', label: 'Products', icon: Package, count: products.length },
-            { id: 'services', label: 'Services', icon: Layers, count: services.length },
-            { id: 'projects', label: 'Videos', icon: Film, count: projects.length },
-            { id: 'photos', label: 'Photos', icon: ImageIcon, count: galleryImages.length },
-            { id: 'reviews', label: 'Reviews', icon: Star, count: reviews.length },
-            { id: 'location', label: 'Map', icon: MapPin, count: null },
-            { id: 'settings', label: 'Settings', icon: Settings, count: null },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
+      {/* Mobile Slide-Over Sidebar Drawer (Fetures Side Baar) */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            onClick={() => setMobileSidebarOpen(false)}
+          />
+
+          {/* Drawer Menu Panel */}
+          <div className="relative w-[85%] max-w-xs bg-[#1a1614] text-white h-full shadow-2xl flex flex-col z-10 border-r border-[#3a281c] animate-in slide-in-from-left duration-250">
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-stone-800 flex items-center justify-between bg-[#14100e]">
+              <div className="flex items-center gap-2">
+                <WoodNidoLogo size="sm" variant="dark" />
+                <span className="bg-[#c28c46] text-stone-950 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-xs">
+                  Menu
+                </span>
+              </div>
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-[#241710] text-[#e5be7d] shadow-sm ring-1 ring-[#c28c46]/40'
-                    : 'bg-white text-stone-700 hover:bg-stone-200 border border-stone-200/80'
-                }`}
+                onClick={() => setMobileSidebarOpen(false)}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
+                aria-label="Close Sidebar"
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#e5be7d]' : 'text-stone-500'}`} />
-                <span>{tab.label}</span>
-                {tab.count !== null && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
-                    isActive ? 'bg-[#c28c46] text-stone-950' : 'bg-stone-200 text-stone-700'
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
+                <X className="w-5 h-5" />
               </button>
-            );
-          })}
+            </div>
+
+            {/* Drawer Subtitle */}
+            <div className="px-4 py-2.5 bg-stone-900/60 border-b border-stone-800/80">
+              <span className="text-[11px] font-bold text-[#c28c46] tracking-wider uppercase">
+                Admin Panel Features
+              </span>
+            </div>
+
+            {/* Navigation List inside Sidebar Drawer */}
+            <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto">
+              {[
+                { id: 'overview', label: 'Overview', icon: TrendingUp, count: null, desc: 'Stats, Quick Actions & Performance' },
+                { id: 'leads', label: 'Inquiries & Leads', icon: Users, count: leads.length, desc: 'Customer requests & contact forms' },
+                { id: 'products', label: 'Products (پروڈکٹس)', icon: Package, count: products.length, desc: 'Living room, kitchen, bedroom catalogue' },
+                { id: 'services', label: 'Services (9 Categories)', icon: Layers, count: services.length, desc: 'Woodwork, renovation, cabinetry services' },
+                { id: 'projects', label: 'YouTube Video Box', icon: Film, count: projects.length, desc: 'YouTube video links & work showcase' },
+                { id: 'photos', label: 'Photos & Showcase', icon: ImageIcon, count: galleryImages.length, desc: 'Gallery photos & portfolio images' },
+                { id: 'settings', label: 'Site & Contact Settings', icon: Settings, count: null, desc: 'Phone, WhatsApp, address & timing' },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id as any);
+                      setMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[#c28c46] text-stone-950 font-bold shadow-md ring-1 ring-amber-300'
+                        : 'bg-stone-900/70 text-stone-200 hover:bg-stone-800 hover:text-white border border-stone-800/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        isActive ? 'bg-stone-950 text-[#e5be7d]' : 'bg-stone-800 text-[#c28c46]'
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="truncate">
+                        <div className="text-xs font-bold truncate">{item.label}</div>
+                        <div className={`text-[10px] truncate ${isActive ? 'text-stone-800 font-semibold' : 'text-stone-400'}`}>
+                          {item.desc}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                      {item.count !== null && (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                          isActive ? 'bg-stone-950 text-[#c28c46]' : 'bg-stone-800 text-stone-300'
+                        }`}>
+                          {item.count}
+                        </span>
+                      )}
+                      <ChevronRight className={`w-4 h-4 ${isActive ? 'text-stone-950' : 'text-stone-500'}`} />
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Drawer Footer Actions */}
+            <div className="p-3 border-t border-stone-800 bg-[#14100e] space-y-2">
+              <button
+                onClick={() => {
+                  setMobileSidebarOpen(false);
+                  setCurrentView('website');
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#c28c46]" />
+                Back to Website
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileSidebarOpen(false);
+                  if (window.confirm('Reset all site data, services, reviews, and config back to default?')) {
+                    resetToDefaults();
+                    alert('Reset successfully!');
+                  }
+                }}
+                className="w-full py-2 px-3 text-[11px] text-red-400 hover:bg-red-950/40 rounded-lg flex items-center justify-center gap-1.5 transition-colors font-medium cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset All to Defaults
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Layout */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8 w-full flex-1 flex flex-col md:flex-row gap-4 sm:gap-6 pb-20 md:pb-8">
+        
+        {/* Mobile Active Section Bar (Clean & Static - No Left/Right Scroll) */}
+        <div className="md:hidden flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-stone-200/90 shadow-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-[10px] font-black uppercase tracking-wider text-stone-400 shrink-0">Section:</span>
+            <span className="text-xs font-black text-stone-900 truncate">
+              {activeTab === 'overview' && '📊 Overview & Stats'}
+              {activeTab === 'leads' && `👥 Customer Inquiries (${leads.length})`}
+              {activeTab === 'products' && `📦 Products Catalog (${products.length})`}
+              {activeTab === 'services' && `🛠️ Services (${services.length})`}
+              {activeTab === 'projects' && `🎬 YouTube Videos (${projects.length})`}
+              {activeTab === 'photos' && `🖼️ Photos Gallery (${galleryImages.length})`}
+              {activeTab === 'settings' && '⚙️ Site & Contact Settings'}
+            </span>
+          </div>
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-extrabold text-stone-950 px-3 py-1.5 rounded-lg bg-[#c28c46] hover:bg-[#b07d3b] shrink-0 cursor-pointer shadow-xs transition-all active:scale-95"
+            title="Open Sidebar"
+          >
+            <Menu className="w-3.5 h-3.5" />
+            <span>Side Bar</span>
+          </button>
         </div>
 
         {/* Sidebar Nav (Desktop Only) */}
@@ -375,38 +502,6 @@ export const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('reviews')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors ${
-              activeTab === 'reviews'
-                ? 'bg-[#1f1e1d] text-white shadow-xs'
-                : 'text-stone-700 hover:bg-stone-100'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Star className="w-4 h-4 text-[#c28c46]" />
-              <span>Client Reviews</span>
-            </div>
-            <span className="text-[11px] text-stone-400">{reviews.length}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('location')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors ${
-              activeTab === 'location'
-                ? 'bg-[#1f1e1d] text-white shadow-xs'
-                : 'text-stone-700 hover:bg-stone-100'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <MapPin className="w-4 h-4 text-[#c28c46]" />
-              <span>Map & Location Settings</span>
-            </div>
-            <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-amber-100 text-amber-900 font-bold">
-              Map
-            </span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('settings')}
             className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors ${
               activeTab === 'settings'
@@ -437,80 +532,106 @@ export const AdminDashboard: React.FC = () => {
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 bg-white p-6 rounded-2xl border border-stone-200 shadow-xs min-h-[500px]">
+        <main className="flex-1 bg-white p-3.5 sm:p-6 rounded-2xl border border-stone-200 shadow-xs min-h-[500px]">
           
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-stone-900">Dashboard Overview</h2>
-                <p className="text-xs text-stone-500">Live statistics and customer engagement summary.</p>
+                <h2 className="text-lg sm:text-xl font-bold text-stone-900">Dashboard Overview</h2>
+                <p className="text-[11px] sm:text-xs text-stone-500">Live statistics and customer engagement summary.</p>
               </div>
 
-              {/* KPI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
-                  <span className="text-xs font-semibold text-amber-900">New Inquiries</span>
-                  <p className="text-2xl font-black text-amber-700 mt-1">
+              {/* KPI Stat Cards (2-by-2 on Mobile, Compact & Sleek) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+                {/* 1. New Inquiries */}
+                <div
+                  onClick={() => setActiveTab('leads')}
+                  className="p-2.5 sm:p-3 rounded-xl bg-amber-50/80 hover:bg-amber-100/90 border border-amber-200/80 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-amber-950 truncate">New Leads</span>
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-amber-800 my-0.5">
                     {leads.filter((l) => l.status === 'new').length}
                   </p>
-                  <span className="text-[10px] text-amber-600">Pending review</span>
+                  <span className="text-[9px] text-amber-700 font-medium truncate">Pending review</span>
                 </div>
 
-                <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
-                  <span className="text-xs font-semibold text-blue-900">Total Leads</span>
-                  <p className="text-2xl font-black text-blue-700 mt-1">{leads.length}</p>
-                  <span className="text-[10px] text-blue-600">From website forms</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-orange-50/70 border border-orange-200 cursor-pointer" onClick={() => setActiveTab('products')}>
-                  <span className="text-xs font-semibold text-orange-900">Custom Products</span>
-                  <p className="text-2xl font-black text-[#c28c46] mt-1">{products.length}</p>
-                  <span className="text-[10px] text-orange-600">Homepage catalog (No price)</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200">
-                  <span className="text-xs font-semibold text-purple-900">Active Services</span>
-                  <p className="text-2xl font-black text-purple-700 mt-1">{services.length}</p>
-                  <span className="text-[10px] text-purple-600">Displayed on site</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-green-50/70 border border-green-200">
-                  <span className="text-xs font-semibold text-green-900">Video Projects</span>
-                  <p className="text-2xl font-black text-green-700 mt-1">{projects.length}</p>
-                  <span className="text-[10px] text-green-600">Showcase items</span>
-                </div>
-              </div>
-
-              {/* Quick Location & Map Status Banner */}
-              <div 
-                onClick={() => setActiveTab('location')}
-                className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 cursor-pointer hover:border-amber-400 hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-[#c28c46] text-white flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-5 h-5" />
+                {/* 2. Total Leads */}
+                <div
+                  onClick={() => setActiveTab('leads')}
+                  className="p-2.5 sm:p-3 rounded-xl bg-blue-50/80 hover:bg-blue-100/90 border border-blue-200/80 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-blue-950 truncate">Total Leads</span>
+                    <Users className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-stone-900">
-                        {siteConfig.locationName || 'Wood Reno Workshop & Display'}
-                      </span>
-                      <span className="text-[10px] bg-amber-200/80 text-amber-900 font-semibold px-2 py-0.5 rounded-full">
-                        Active Map Location
-                      </span>
-                    </div>
-                    <p className="text-xs text-stone-600 mt-0.5 line-clamp-1">
-                      {siteConfig.address}
-                    </p>
-                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-blue-800 my-0.5">
+                    {leads.length}
+                  </p>
+                  <span className="text-[9px] text-blue-700 font-medium truncate">From website</span>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-bold text-[#b57a2c] bg-white px-3 py-1.5 rounded-lg border border-amber-200 shadow-xs hover:bg-amber-50 flex items-center gap-1">
-                    <span>Edit Map & Location</span>
-                    <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
-                  </span>
+                {/* 3. Custom Products */}
+                <div
+                  onClick={() => setActiveTab('products')}
+                  className="p-2.5 sm:p-3 rounded-xl bg-orange-50/80 hover:bg-orange-100/90 border border-orange-200/80 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-orange-950 truncate">Products</span>
+                    <Package className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-orange-800 my-0.5">
+                    {products.length}
+                  </p>
+                  <span className="text-[9px] text-orange-700 font-medium truncate">In catalog</span>
+                </div>
+
+                {/* 4. Active Services */}
+                <div
+                  onClick={() => setActiveTab('services')}
+                  className="p-2.5 sm:p-3 rounded-xl bg-purple-50/80 hover:bg-purple-100/90 border border-purple-200/80 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-purple-950 truncate">Services</span>
+                    <Layers className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-purple-800 my-0.5">
+                    {services.length}
+                  </p>
+                  <span className="text-[9px] text-purple-700 font-medium truncate">9 categories</span>
+                </div>
+
+                {/* 5. Video Projects */}
+                <div
+                  onClick={() => setActiveTab('projects')}
+                  className="p-2.5 sm:p-3 rounded-xl bg-red-50/80 hover:bg-red-100/90 border border-red-200/80 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-red-950 truncate">Videos</span>
+                    <Film className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-red-800 my-0.5">
+                    {projects.length}
+                  </p>
+                  <span className="text-[9px] text-red-700 font-medium truncate">YouTube boxes</span>
+                </div>
+
+                {/* 6. Gallery Photos */}
+                <div
+                  onClick={() => setActiveTab('photos')}
+                  className="p-2.5 sm:p-3 rounded-xl bg-emerald-50/80 hover:bg-emerald-100/90 border border-emerald-200/80 transition-all cursor-pointer shadow-2xs flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-emerald-950 truncate">Photos</span>
+                    <ImageIcon className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-emerald-800 my-0.5">
+                    {galleryImages.length}
+                  </p>
+                  <span className="text-[9px] text-emerald-700 font-medium truncate">Showcase gallery</span>
                 </div>
               </div>
 
@@ -1180,10 +1301,10 @@ export const AdminDashboard: React.FC = () => {
                   onClick={() => {
                     setProjectForm({
                       title: '',
-                      category: 'Bedroom',
+                      category: 'Showcase',
                       thumbnail: '',
-                      youtubeId: 'dQw4w9WgXcQ',
-                      duration: '04:30',
+                      youtubeId: '',
+                      duration: 'Video',
                       description: '',
                     });
                     setIsAddingProject(true);
@@ -1196,31 +1317,29 @@ export const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
-              {/* Add / Edit Project Form */}
+              {/* Add / Edit Project Form - ONLY YouTube Link Required */}
               {(isAddingProject || editingProject) && (
-                <div className="p-5 bg-gradient-to-br from-stone-50 to-amber-50/40 rounded-2xl border-2 border-amber-200/80 shadow-sm space-y-4">
+                <div className="p-4 sm:p-5 bg-gradient-to-br from-stone-50 to-amber-50/50 rounded-2xl border-2 border-amber-300 shadow-md space-y-3.5">
                   <div className="flex items-center justify-between border-b border-amber-200/60 pb-2">
-                    <h3 className="text-xs font-extrabold text-stone-900 uppercase flex items-center gap-2">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-stone-900 uppercase flex items-center gap-2">
                       <Film className="w-4 h-4 text-red-600" />
-                      <span>{editingProject ? 'Edit YouTube Video Card' : 'Add New YouTube Video Card'}</span>
+                      <span>{editingProject ? 'Edit YouTube Video Link' : 'Add New YouTube Video'}</span>
                     </h3>
-                    <span className="text-[11px] text-stone-500">
-                      Changes update immediately on the main page
+                    <span className="text-[10px] sm:text-xs text-stone-500 font-medium">
+                      Sirf YouTube link dalein, video foran add ho jayegi
                     </span>
                   </div>
 
-                  {/* YouTube Link / URL Input with Auto-extract */}
-                  <div className="p-3.5 rounded-xl bg-white border border-stone-200 shadow-xs space-y-2">
-                    <label className="block text-xs font-bold text-stone-800 flex items-center justify-between">
+                  {/* YouTube Link / URL Input - ONLY FIELD REQUIRED */}
+                  <div className="p-3.5 rounded-xl bg-white border border-stone-200 shadow-2xs space-y-2">
+                    <label className="block text-xs font-bold text-stone-900 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <span className="bg-red-600 text-white rounded-xs px-1 text-[9px] font-black">▶</span>
-                        YouTube Video URL or Video ID (یوٹیوب ویڈیو لنک یا آئی ڈی)
-                      </span>
-                      <span className="text-[10px] text-[#b57a2c] font-medium">
-                        Paste full link (e.g. https://www.youtube.com/watch?v=... or youtu.be/...)
+                        YouTube Video Link (یوٹیوب ویڈیو کا لنک)
                       </span>
                     </label>
-                    <div className="flex gap-2">
+
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={editingProject ? editingProject.youtubeId : projectForm.youtubeId}
@@ -1230,202 +1349,111 @@ export const AdminDashboard: React.FC = () => {
                           if (editingProject) {
                             setEditingProject({
                               ...editingProject,
-                              youtubeId: extracted,
-                              // If thumbnail is empty or default, suggest youtube maxresdefault
-                              thumbnail: editingProject.thumbnail || `https://img.youtube.com/vi/${extracted}/hqdefault.jpg`,
+                              youtubeId: val,
+                              thumbnail: `https://img.youtube.com/vi/${extracted}/hqdefault.jpg`,
                             });
                           } else {
                             setProjectForm({
                               ...projectForm,
-                              youtubeId: extracted,
-                              thumbnail: projectForm.thumbnail || `https://img.youtube.com/vi/${extracted}/hqdefault.jpg`,
+                              youtubeId: val,
+                              thumbnail: `https://img.youtube.com/vi/${extracted}/hqdefault.jpg`,
                             });
                           }
                         }}
-                        placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                        placeholder="https://www.youtube.com/watch?v=... ya https://youtu.be/..."
                         className="flex-1 px-3 py-2 text-xs border border-stone-300 rounded-lg outline-hidden bg-white focus:ring-2 focus:ring-[#c28c46] font-mono"
+                        autoFocus
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentId = editingProject ? editingProject.youtubeId : projectForm.youtubeId;
-                          const autoThumb = `https://img.youtube.com/vi/${currentId}/hqdefault.jpg`;
-                          if (editingProject) {
-                            setEditingProject({ ...editingProject, thumbnail: autoThumb });
-                          } else {
-                            setProjectForm({ ...projectForm, thumbnail: autoThumb });
-                          }
-                        }}
-                        className="px-3 py-1.5 text-xs bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded-lg border border-stone-300 transition-colors shrink-0"
-                        title="Use YouTube auto thumbnail"
-                      >
-                        Auto Thumbnail
-                      </button>
                     </div>
+
                     <p className="text-[10px] text-stone-500">
-                      Clean YouTube ID: <strong className="text-stone-800 font-mono">{editingProject ? editingProject.youtubeId : projectForm.youtubeId}</strong>
+                      YouTube Video ID: <strong className="text-stone-900 font-mono">{extractYouTubeId(editingProject ? editingProject.youtubeId : projectForm.youtubeId)}</strong>
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">
-                        Video Title (عنوان)
-                      </label>
-                      <input
-                        type="text"
-                        value={editingProject ? editingProject.title : projectForm.title}
-                        onChange={(e) =>
-                          editingProject
-                            ? setEditingProject({ ...editingProject, title: e.target.value })
-                            : setProjectForm({ ...projectForm, title: e.target.value })
-                        }
-                        placeholder="e.g. Room Makeover Before & After"
-                        className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg outline-hidden bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">
-                        Category (کیٹگری)
-                      </label>
-                      <input
-                        type="text"
-                        value={editingProject ? editingProject.category : projectForm.category}
-                        onChange={(e) =>
-                          editingProject
-                            ? setEditingProject({ ...editingProject, category: e.target.value })
-                            : setProjectForm({ ...projectForm, category: e.target.value })
-                        }
-                        placeholder="Bedroom / Kitchen / Bathrooms"
-                        className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg outline-hidden bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2">
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">
-                        Thumbnail Image URL (تصویر کا لنک)
-                      </label>
-                      <input
-                        type="url"
-                        value={editingProject ? editingProject.thumbnail : projectForm.thumbnail}
-                        onChange={(e) =>
-                          editingProject
-                            ? setEditingProject({ ...editingProject, thumbnail: e.target.value })
-                            : setProjectForm({ ...projectForm, thumbnail: e.target.value })
-                        }
-                        placeholder="https://images.unsplash.com/... or https://img.youtube.com/..."
-                        className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg outline-hidden bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-semibold text-stone-700 mb-1">
-                        Duration (وقت)
-                      </label>
-                      <input
-                        type="text"
-                        value={editingProject ? editingProject.duration || '' : projectForm.duration}
-                        onChange={(e) =>
-                          editingProject
-                            ? setEditingProject({ ...editingProject, duration: e.target.value })
-                            : setProjectForm({ ...projectForm, duration: e.target.value })
-                        }
-                        placeholder="04:15"
-                        className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg outline-hidden bg-white font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-stone-700 mb-1">
-                      Short Description (مختصر تفصیل)
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={editingProject ? editingProject.description || '' : projectForm.description}
-                      onChange={(e) =>
-                        editingProject
-                          ? setEditingProject({ ...editingProject, description: e.target.value })
-                          : setProjectForm({ ...projectForm, description: e.target.value })
-                      }
-                      placeholder="Brief summary of what was transformed in this video..."
-                      className="w-full px-3 py-1.5 text-xs border border-stone-300 rounded-lg outline-hidden bg-white"
-                    />
-                  </div>
-
-                  {/* Live Card Preview */}
-                  <div className="p-3 bg-stone-100 rounded-xl border border-stone-300">
-                    <p className="text-[10px] font-bold text-stone-600 mb-2 uppercase">Live Preview of YouTube Card:</p>
-                    <div className="max-w-xs bg-stone-900 rounded-xl overflow-hidden shadow-md">
-                      <div className="relative aspect-video w-full bg-stone-950">
-                        <img
-                          src={editingProject ? editingProject.thumbnail : projectForm.thumbnail || 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80'}
-                          alt="preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80';
-                          }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-10 h-7 bg-red-600 rounded-lg flex items-center justify-center shadow-lg">
-                            <Play className="w-3.5 h-3.5 fill-white text-white translate-x-0.5" />
+                  {/* Live Video Preview thumbnail */}
+                  {(() => {
+                    const currentId = extractYouTubeId(editingProject ? editingProject.youtubeId : projectForm.youtubeId);
+                    return (
+                      <div className="p-3 bg-white rounded-xl border border-stone-200 flex items-center gap-3">
+                        <div className="w-28 sm:w-36 aspect-video bg-black rounded-lg overflow-hidden relative shrink-0">
+                          <img
+                            src={`https://img.youtube.com/vi/${currentId}/hqdefault.jpg`}
+                            alt="preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80';
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-7 h-5 bg-red-600 rounded flex items-center justify-center shadow">
+                              <Play className="w-2.5 h-2.5 fill-white text-white translate-x-0.5" />
+                            </div>
                           </div>
                         </div>
-                        <span className="absolute bottom-1 right-2 bg-black/80 text-white font-mono text-[9px] px-1 py-0.5 rounded-xs">
-                          {editingProject ? editingProject.duration : projectForm.duration || '03:45'}
-                        </span>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            Auto-detected Thumbnail ✓
+                          </span>
+                          <p className="text-xs font-bold text-stone-900 mt-1 truncate">
+                            {editingProject ? editingProject.title : `WoodNido Video Box #${projects.length + 1}`}
+                          </p>
+                          <p className="text-[10px] text-stone-500 truncate font-mono">
+                            ID: {currentId}
+                          </p>
+                        </div>
                       </div>
-                      <div className="p-2.5 bg-stone-900 text-white">
-                        <p className="text-xs font-semibold truncate">
-                          {editingProject ? editingProject.title : projectForm.title || 'Sample Video Title'}
-                        </p>
-                        <p className="text-[10px] text-amber-400 mt-0.5">
-                          {editingProject ? editingProject.category : projectForm.category || 'Category'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
-                  <div className="flex items-center gap-2 pt-2">
+                  <div className="flex items-center gap-2 pt-1">
                     <button
                       onClick={() => {
+                        const rawInput = editingProject ? editingProject.youtubeId : projectForm.youtubeId;
+                        const finalId = extractYouTubeId(rawInput);
+                        if (!finalId || (finalId === 'dQw4w9WgXcQ' && !rawInput.trim())) {
+                          alert('YouTube video link dalna zaroori hai.');
+                          return;
+                        }
+
                         if (editingProject) {
                           updateProject(editingProject.id, {
                             ...editingProject,
-                            youtubeId: extractYouTubeId(editingProject.youtubeId),
+                            youtubeId: finalId,
+                            thumbnail: `https://img.youtube.com/vi/${finalId}/hqdefault.jpg`,
                           });
                           setEditingProject(null);
                         } else {
-                          if (!projectForm.title.trim()) {
-                            alert('Video Title likhna zaroori hai.');
-                            return;
-                          }
-                          const finalId = extractYouTubeId(projectForm.youtubeId);
                           addProject({
-                            title: projectForm.title,
-                            category: projectForm.category || 'Renovation',
-                            thumbnail: projectForm.thumbnail || `https://img.youtube.com/vi/${finalId}/hqdefault.jpg`,
-                            youtubeId: finalId || 'dQw4w9WgXcQ',
-                            duration: projectForm.duration || '03:45',
-                            description: projectForm.description,
+                            title: `WoodNido Video #${projects.length + 1}`,
+                            category: 'Showcase',
+                            thumbnail: `https://img.youtube.com/vi/${finalId}/hqdefault.jpg`,
+                            youtubeId: finalId,
+                            duration: 'Video',
+                            description: 'WoodNido furniture and woodwork video walkthrough.',
                           });
                           setIsAddingProject(false);
+                          setProjectForm({
+                            title: '',
+                            category: 'Showcase',
+                            thumbnail: '',
+                            youtubeId: '',
+                            duration: 'Video',
+                            description: '',
+                          });
                         }
                       }}
-                      className="bg-green-700 hover:bg-green-800 text-white text-xs font-bold px-5 py-2.5 rounded-lg shadow-sm flex items-center gap-1.5 transition-colors"
+                      className="bg-green-700 hover:bg-green-800 text-white text-xs font-bold px-5 py-2.5 rounded-lg shadow-sm flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <Save className="w-3.5 h-3.5" />
-                      Save YouTube Video to Main Page
+                      <span>{editingProject ? 'Update Video' : 'Add Video to Main Page'}</span>
                     </button>
                     <button
                       onClick={() => {
                         setEditingProject(null);
                         setIsAddingProject(false);
                       }}
-                      className="bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold px-4 py-2.5 rounded-lg transition-colors"
+                      className="bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold px-4 py-2.5 rounded-lg transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -1433,81 +1461,165 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Projects List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {projects.map((proj) => (
-                  <div
-                    key={proj.id}
-                    className="p-3.5 rounded-xl border border-stone-200 bg-white hover:border-amber-400 hover:shadow-md transition-all flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="w-full aspect-video rounded-lg overflow-hidden mb-2 bg-black relative group">
-                        <img
-                          src={proj.thumbnail}
-                          alt={proj.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${proj.youtubeId}/hqdefault.jpg`;
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                          <div className="w-10 h-7 bg-red-600 rounded-lg flex items-center justify-center shadow-lg">
-                            <Play className="w-3.5 h-3.5 fill-white text-white translate-x-0.5" />
+              {/* Projects List with Direct YouTube URL Boxes */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+                {projects.map((proj, idx) => {
+                  const currentInputVal =
+                    projectUrlInputs[proj.id] !== undefined
+                      ? projectUrlInputs[proj.id]
+                      : proj.youtubeId.startsWith('http')
+                      ? proj.youtubeId
+                      : `https://www.youtube.com/watch?v=${proj.youtubeId}`;
+
+                  return (
+                    <div
+                      key={proj.id}
+                      className="p-2.5 sm:p-3 rounded-xl border border-stone-200 bg-white hover:border-amber-400 hover:shadow-xs transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Video Thumbnail with Click to Preview */}
+                        <div
+                          onClick={() => setPreviewVideoItem(proj)}
+                          className="w-full aspect-video rounded-lg overflow-hidden mb-2 bg-black relative group cursor-pointer"
+                          title="Click to preview video"
+                        >
+                          <img
+                            src={proj.thumbnail}
+                            alt={proj.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${extractYouTubeId(proj.youtubeId)}/hqdefault.jpg`;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                            <div className="w-8 h-5.5 sm:w-9 sm:h-6 bg-red-600 rounded-md flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                              <Play className="w-3 h-3 fill-white text-white translate-x-0.5" />
+                            </div>
+                          </div>
+                          <span className="absolute bottom-1 right-1 bg-black/85 text-white text-[9px] px-1 py-0.5 rounded-xs font-mono">
+                            {proj.duration || 'Video'}
+                          </span>
+                          <span className="absolute top-1 left-1 bg-[#c28c46] text-stone-950 text-[9px] font-black px-1.5 py-0.2 rounded-2xs shadow-2xs">
+                            Box #{idx + 1}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <h4 className="text-xs font-bold text-stone-900 line-clamp-1">{proj.title}</h4>
+                          <span className="text-[9px] text-[#c28c46] font-semibold bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200 shrink-0">
+                            {proj.category}
+                          </span>
+                        </div>
+
+                        {/* Dedicated YouTube URL Input Box with 1-click Save */}
+                        <div className="mt-1.5 p-1.5 rounded-lg bg-stone-50 border border-stone-200 space-y-1">
+                          <div className="flex items-center justify-between text-[9px] font-bold text-stone-700">
+                            <span className="flex items-center gap-1">
+                              <span className="bg-red-600 text-white rounded-2xs px-0.5 text-[7px] font-black">▶</span>
+                              YouTube URL
+                            </span>
+                            {projectSavedBadge[proj.id] && (
+                              <span className="text-green-700 font-bold bg-green-100 px-1 py-0.2 rounded border border-green-300 animate-pulse text-[8px]">
+                                Live ✓
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex gap-1">
+                            <input
+                              type="text"
+                              value={currentInputVal}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setProjectUrlInputs((prev) => ({ ...prev, [proj.id]: val }));
+                              }}
+                              placeholder="YouTube link..."
+                              className="flex-1 px-2 py-1 text-xs border border-stone-300 rounded-md outline-hidden bg-white focus:ring-1 focus:ring-[#c28c46] font-mono"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleQuickSaveProjectUrl(proj)}
+                              className="px-2 py-1 bg-[#1f1e1d] hover:bg-black text-[#fdf8f0] text-xs font-bold rounded-md transition-colors shrink-0 shadow-2xs cursor-pointer flex items-center gap-0.5"
+                              title="Save this video link"
+                            >
+                              <Save className="w-2.5 h-2.5 text-[#c28c46]" />
+                              <span>Save</span>
+                            </button>
                           </div>
                         </div>
-                        <span className="absolute bottom-1 right-1 bg-black/85 text-white text-[10px] px-1.5 py-0.5 rounded-xs font-mono">
-                          {proj.duration}
-                        </span>
                       </div>
-                      <h4 className="text-xs font-bold text-stone-900 line-clamp-1">{proj.title}</h4>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-[10px] text-[#c28c46] font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                          {proj.category}
-                        </span>
-                        <span className="text-[10px] text-stone-400 font-mono">
-                          ID: {proj.youtubeId}
-                        </span>
+
+                      {/* Card Footer Actions */}
+                      <div className="flex items-center justify-between gap-1.5 mt-3 pt-2 border-t border-stone-200 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setPreviewVideoItem(proj)}
+                          className="text-[11px] text-[#b57a2c] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Play className="w-3 h-3 text-red-600 fill-red-600" />
+                          <span>Test Play</span>
+                        </button>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => {
+                              setEditingProject(proj);
+                              setIsAddingProject(false);
+                            }}
+                            className="p-1.5 text-stone-600 hover:text-stone-900 rounded-md hover:bg-stone-100 cursor-pointer"
+                            title="Edit Title / Details"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete ${proj.title}?`)) {
+                                deleteProject(proj.id);
+                              }
+                            }}
+                            className="p-1.5 text-stone-400 hover:text-red-600 rounded-md hover:bg-red-50 cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
 
-                    <div className="flex items-center justify-between gap-1.5 mt-3 pt-2 border-t border-stone-200">
-                      <a
-                        href={`https://www.youtube.com/watch?v=${proj.youtubeId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[11px] text-[#b57a2c] font-semibold hover:underline flex items-center gap-1"
+              {/* Video Player Preview Modal inside Admin */}
+              {previewVideoItem && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150"
+                  onClick={() => setPreviewVideoItem(null)}
+                >
+                  <div
+                    className="relative w-full max-w-2xl bg-black rounded-2xl overflow-hidden border border-stone-800 shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="p-3 bg-stone-900 flex items-center justify-between text-white border-b border-stone-800">
+                      <span className="text-xs font-bold truncate max-w-md">{previewVideoItem.title}</span>
+                      <button
+                        onClick={() => setPreviewVideoItem(null)}
+                        className="p-1 text-stone-400 hover:text-white cursor-pointer"
                       >
-                        <ExternalLink className="w-3 h-3" />
-                        <span>Watch Video</span>
-                      </a>
-
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => {
-                            setEditingProject(proj);
-                            setIsAddingProject(false);
-                          }}
-                          className="p-1.5 text-stone-600 hover:text-stone-900 rounded-md hover:bg-stone-100"
-                          title="Edit"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`Delete ${proj.title}?`)) {
-                              deleteProject(proj.id);
-                            }
-                          }}
-                          className="p-1.5 text-stone-400 hover:text-red-600 rounded-md hover:bg-red-50"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="aspect-video w-full bg-black">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${extractYouTubeId(previewVideoItem.youtubeId)}?autoplay=1&rel=0`}
+                        title={previewVideoItem.title}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1806,380 +1918,6 @@ export const AdminDashboard: React.FC = () => {
                     <p className="text-xs text-stone-600 italic">"{rev.comment}"</p>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* TAB: LOCATION & MAP */}
-          {activeTab === 'location' && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-stone-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-[#c28c46] shrink-0 border border-amber-200">
-                    <MapPin className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-stone-900 flex items-center gap-2">
-                      <span>Map & Location Settings</span>
-                      <span className="text-xs font-normal text-stone-500 font-sans">(ورکشاپ لوکیشن اور نقشہ)</span>
-                    </h2>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      Yahan se aap apni workshop ka display name, complete address, aur Google Map pin change karein. Jo address aap yahan dalenge, website ke map aur card par wahi show hoga.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => {
-                      setCurrentView('website');
-                      setTimeout(() => {
-                        const el = document.getElementById('location');
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }, 100);
-                    }}
-                    className="px-3.5 py-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold flex items-center gap-1.5 transition-colors border border-stone-300"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
-                    <span>View on Website</span>
-                  </button>
-                </div>
-              </div>
-
-              {locationSaved && (
-                <div className="p-3.5 bg-green-50 border border-green-200 text-green-800 text-xs rounded-xl flex items-center gap-2.5 shadow-xs animate-in fade-in duration-200">
-                  <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
-                  <span className="font-bold">
-                    Location & Map updated successfully! Live website par naya address aur map show ho raha hai.
-                  </span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
-                {/* Left Column: Form controls & Presets */}
-                <div className="lg:col-span-6 space-y-5">
-                  <form onSubmit={handleSaveLocation} className="space-y-4">
-                    
-                    {/* 1. Address Display Name */}
-                    <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-1.5">
-                      <label className="block text-xs font-bold text-stone-900 flex items-center justify-between">
-                        <span>1. Location / Shop Display Name (نام جو ایڈریس کارڈ پر شو ہوگا)</span>
-                        <span className="text-[10px] text-amber-800 font-semibold bg-amber-100 px-2 py-0.5 rounded border border-amber-200">Card Title</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={settingsForm.locationName || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, locationName: e.target.value })}
-                        placeholder="e.g. Wood Reno Workshop & Display"
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg bg-white outline-hidden focus:ring-2 focus:ring-[#c28c46] focus:border-transparent font-medium"
-                      />
-                      <p className="text-[11px] text-stone-500">
-                        Yeh naam map ke upar floating card mein bold nazar aayega (e.g. Wood Reno Workshop & Display).
-                      </p>
-                    </div>
-
-                    {/* 2. Full Physical Address */}
-                    <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-1.5">
-                      <label className="block text-xs font-bold text-stone-900 flex items-center justify-between">
-                        <span>2. Full Physical Address (مکمل پتہ)</span>
-                        <span className="text-[10px] text-blue-800 font-semibold bg-blue-100 px-2 py-0.5 rounded border border-blue-200">Main Address</span>
-                      </label>
-                      <textarea
-                        rows={3}
-                        required
-                        value={settingsForm.address || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })}
-                        placeholder="e.g. Shop #1. Plot #126. I&T center, G-9/1 Islamabad."
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg bg-white outline-hidden focus:ring-2 focus:ring-[#c28c46] focus:border-transparent font-medium"
-                      />
-                      <p className="text-[11px] text-stone-500">
-                        Yeh mukammal address map card, footer aur contact us section mein show hota hai.
-                      </p>
-                    </div>
-
-                    {/* 3. Google Maps Pin Query / Location Search */}
-                    <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-1.5">
-                      <label className="block text-xs font-bold text-stone-900 flex items-center justify-between">
-                        <span>3. Google Map Search Query / Pin (گوگل میپ کی لوکیشن یا تلاش)</span>
-                        <span className="text-[10px] text-green-800 font-semibold bg-green-100 px-2 py-0.5 rounded border border-green-200">Map Pin</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={settingsForm.mapQuery || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, mapQuery: e.target.value })}
-                        placeholder="e.g. Faizi Plaza Soan Garden Block B Islamabad"
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg bg-white outline-hidden focus:ring-2 focus:ring-[#c28c46] focus:border-transparent font-medium"
-                      />
-                      <p className="text-[11px] text-stone-500">
-                        Google Map is query/sector ke mutabiq pin point karega (e.g. "Faizi Plaza Soan Garden Block B Islamabad").
-                      </p>
-                    </div>
-
-                    {/* 3b. Direct Google Maps URL (maps.app.goo.gl link) */}
-                    <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-1.5">
-                      <label className="block text-xs font-bold text-stone-900 flex items-center justify-between">
-                        <span>4. Google Maps Direct Share Link (گوگل میپس کا ڈائریکٹ لنک)</span>
-                        <span className="text-[10px] text-purple-800 font-semibold bg-purple-100 px-2 py-0.5 rounded border border-purple-200">Open in Maps URL</span>
-                      </label>
-                      <input
-                        type="url"
-                        value={settingsForm.mapUrl || ''}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, mapUrl: e.target.value })}
-                        placeholder="e.g. https://maps.app.goo.gl/USgkH71RQLEisrHg6?g_st=ac"
-                        className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg bg-white outline-hidden focus:ring-2 focus:ring-[#c28c46] focus:border-transparent font-medium"
-                      />
-                      <p className="text-[11px] text-stone-500">
-                        Jab user "Open in Maps" ya Direction icon par click karega to yeh direct link open hoga.
-                      </p>
-                    </div>
-
-                    {/* 5. Map Zoom Slider */}
-                    <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-stone-900">
-                          5. Map Zoom Level (نقشے کا زوم)
-                        </label>
-                        <span className="text-xs font-mono font-bold bg-[#c28c46] text-white px-2 py-0.5 rounded">
-                          Level {settingsForm.mapZoom || 16}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="10"
-                        max="18"
-                        value={settingsForm.mapZoom || 16}
-                        onChange={(e) => setSettingsForm({ ...settingsForm, mapZoom: Number(e.target.value) })}
-                        className="w-full accent-[#c28c46] cursor-pointer"
-                      />
-                      <div className="flex justify-between text-[10px] text-stone-500">
-                        <span>10 (City Overview)</span>
-                        <span className="font-semibold text-stone-700">16 (Recommended Street/Plaza View)</span>
-                        <span>18 (Exact Building Closeup)</span>
-                      </div>
-                    </div>
-
-                    {/* Quick 1-Click Presets */}
-                    <div className="bg-amber-50/70 p-4 rounded-xl border border-amber-200 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-[#c28c46]" />
-                          Quick Presets (ایک کلک سے لوکیشن سلیکٹ کریں)
-                        </span>
-                        <span className="text-[10px] text-amber-800 font-semibold">Click to auto-fill</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Nido Workshop & Display - Soan Garden',
-                              address: 'Plot 7/10, Faizi Plaza, Near Creative Furniture, Block B, Soan Garden, Islamabad',
-                              mapQuery: '33.5652375,73.1500156',
-                              mapZoom: 17,
-                              mapUrl: 'https://maps.app.goo.gl/yHqeRina8veD8CABA',
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-amber-100/70 hover:bg-amber-200/80 border border-amber-300 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 Soan Garden (Current)</div>
-                          <div className="text-[10px] text-stone-600 truncate">Faizi Plaza, Block B</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Nido Workshop & Display',
-                              address: 'Shop #1. Plot #126. I&T center, G-9/1 Islamabad.',
-                              mapQuery: 'I&T center G-9/1 Islamabad',
-                              mapZoom: 14,
-                              mapUrl: '',
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 G-9/1 I&T Center</div>
-                          <div className="text-[10px] text-stone-500 truncate">Islamabad</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Reno Design Studio',
-                              address: 'Office #12, 2nd Floor, Blue Area, Jinnah Avenue, Islamabad.',
-                              mapQuery: 'Blue Area Islamabad',
-                              mapZoom: 14,
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 Blue Area</div>
-                          <div className="text-[10px] text-stone-500 truncate">Islamabad</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Reno F-10 Showroom',
-                              address: 'Plaza 14, F-10 Markaz, Islamabad.',
-                              mapQuery: 'F-10 Markaz Islamabad',
-                              mapZoom: 15,
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 F-10 Markaz</div>
-                          <div className="text-[10px] text-stone-500 truncate">Islamabad</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Reno Rawalpindi Branch',
-                              address: 'Shop 4, Bank Road, Saddar, Rawalpindi.',
-                              mapQuery: 'Saddar Rawalpindi',
-                              mapZoom: 14,
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 Saddar</div>
-                          <div className="text-[10px] text-stone-500 truncate">Rawalpindi</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Reno Bahria Studio',
-                              address: 'Civic Center, Phase 4, Bahria Town, Rawalpindi.',
-                              mapQuery: 'Bahria Town Phase 4 Rawalpindi',
-                              mapZoom: 14,
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 Bahria Town</div>
-                          <div className="text-[10px] text-stone-500 truncate">Rawalpindi Phase 4/7</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSettingsForm({
-                              ...settingsForm,
-                              locationName: 'Wood Reno DHA Phase 2',
-                              address: 'Sector E, Central Commercial, DHA Phase 2, Islamabad.',
-                              mapQuery: 'DHA Phase 2 Islamabad',
-                              mapZoom: 14,
-                            })
-                          }
-                          className="text-left p-2.5 rounded-lg bg-white hover:bg-amber-100 border border-amber-200 transition-colors shadow-xs"
-                        >
-                          <div className="font-bold text-[11px] text-[#b57a2c]">📍 DHA Phase 2</div>
-                          <div className="text-[10px] text-stone-500 truncate">Islamabad</div>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <div className="pt-2 flex items-center gap-3">
-                      <button
-                        type="submit"
-                        className="flex-1 bg-[#1f1e1d] hover:bg-black text-white text-xs font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
-                      >
-                        <Save className="w-4 h-4 text-[#c28c46]" />
-                        <span>Save Location Changes (لوکیشن محفوظ کریں)</span>
-                      </button>
-                    </div>
-
-                  </form>
-                </div>
-
-                {/* Right Column: Live Map Preview */}
-                <div className="lg:col-span-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                      Live Real-Time Preview (لائیو پریویو)
-                    </span>
-                    <span className="text-[11px] text-stone-500">
-                      As seen by website visitors
-                    </span>
-                  </div>
-
-                  {/* Simulated Map Container matching the exact frontend */}
-                  <div className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-stone-300 bg-[#e5e3df] aspect-[16/10] w-full min-h-[300px]">
-                    <iframe
-                      key={`preview-${settingsForm.mapQuery}-${settingsForm.mapZoom}`}
-                      title="Preview Map"
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                        settingsForm.mapQuery || settingsForm.address || 'I&T center G-9/1 Islamabad'
-                      )}&t=&z=${settingsForm.mapZoom || 14}&ie=UTF8&iwloc=&output=embed`}
-                      className="w-full h-full border-0 grayscale-[10%] contrast-[105%]"
-                      loading="lazy"
-                    />
-
-                    {/* Floating Top-Left "Open in Maps" */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <div className="bg-white/95 text-stone-800 text-[10px] font-semibold px-2.5 py-1 rounded-sm shadow-md border border-stone-200 flex items-center gap-1">
-                        <span>Open in Maps</span>
-                        <ExternalLink className="w-3 h-3 text-blue-600" />
-                      </div>
-                    </div>
-
-                    {/* Floating Bottom Card with dynamic inputs */}
-                    <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-xs z-10 bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-stone-200 flex items-center justify-between gap-3">
-                      <div className="flex items-start gap-2">
-                        <div className="w-7 h-7 rounded-full bg-[#c28c46] flex items-center justify-center shrink-0 mt-0.5 text-white">
-                          <MapPin className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="overflow-hidden">
-                          <h4 className="text-[11px] font-bold text-stone-900 leading-tight truncate">
-                            {settingsForm.locationName || 'Wood Nido Workshop & Display - Soan Garden'}
-                          </h4>
-                          <p className="text-[10px] text-stone-600 mt-0.5 line-clamp-2 leading-snug">
-                            {settingsForm.address || 'Plot 7/10, Faizi Plaza, Near Creative Furniture, Block B, Soan Garden, Islamabad'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="shrink-0 bg-stone-900 text-white p-1.5 rounded-lg">
-                        <Navigation className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Summary Box */}
-                  <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 text-xs text-stone-600 space-y-1">
-                    <p className="font-semibold text-stone-800">
-                      Current Settings Summary:
-                    </p>
-                    <p className="text-[11px]">
-                      <strong>Display Name:</strong> {settingsForm.locationName || 'Wood Nido Workshop & Display - Soan Garden'}
-                    </p>
-                    <p className="text-[11px]">
-                      <strong>Address:</strong> {settingsForm.address}
-                    </p>
-                    <p className="text-[11px]">
-                      <strong>Map Pin Query:</strong> {settingsForm.mapQuery || 'Faizi Plaza Soan Garden Block B Islamabad'} (Zoom: {settingsForm.mapZoom || 16})
-                    </p>
-                  </div>
-                </div>
-
               </div>
             </div>
           )}
@@ -2501,8 +2239,121 @@ export const AdminDashboard: React.FC = () => {
           )}
 
         </main>
-
       </div>
+
+      {/* Mobile Fixed Bottom Navigation Bar (5 Options with Icons & Names) */}
+      <nav 
+        aria-label="Mobile Admin Navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#161210]/95 backdrop-blur-md border-t border-[#35261c] shadow-[0_-4px_20px_rgba(0,0,0,0.35)] px-2 py-1.5 safe-area-pb"
+      >
+        <div className="grid grid-cols-5 items-center max-w-md mx-auto">
+          {/* 1. Overview */}
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer relative ${
+              activeTab === 'overview'
+                ? 'text-[#e5be7d]'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition-transform ${activeTab === 'overview' ? 'scale-110 bg-[#c28c46]/20' : ''}`}>
+              <TrendingUp className="w-4.5 h-4.5" />
+            </div>
+            <span className={`text-[10px] mt-0.5 tracking-tight ${activeTab === 'overview' ? 'font-black text-[#e5be7d]' : 'font-semibold'}`}>
+              Overview
+            </span>
+          </button>
+
+          {/* 2. Inquiries / Leads */}
+          <button
+            onClick={() => setActiveTab('leads')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer relative ${
+              activeTab === 'leads'
+                ? 'text-[#e5be7d]'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition-transform relative ${activeTab === 'leads' ? 'scale-110 bg-[#c28c46]/20' : ''}`}>
+              <Users className="w-4.5 h-4.5" />
+              {leads.length > 0 && (
+                <span className="absolute -top-1 -right-2 bg-[#c28c46] text-stone-950 text-[9px] font-black px-1.5 py-0.2 rounded-full leading-tight">
+                  {leads.length}
+                </span>
+              )}
+            </div>
+            <span className={`text-[10px] mt-0.5 tracking-tight ${activeTab === 'leads' ? 'font-black text-[#e5be7d]' : 'font-semibold'}`}>
+              Inquiries
+            </span>
+          </button>
+
+          {/* 3. Products */}
+          <button
+            onClick={() => setActiveTab('products')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer relative ${
+              activeTab === 'products'
+                ? 'text-[#e5be7d]'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition-transform relative ${activeTab === 'products' ? 'scale-110 bg-[#c28c46]/20' : ''}`}>
+              <Package className="w-4.5 h-4.5" />
+              {products.length > 0 && (
+                <span className="absolute -top-1 -right-2 bg-stone-700 text-stone-200 text-[9px] font-black px-1.5 py-0.2 rounded-full leading-tight">
+                  {products.length}
+                </span>
+              )}
+            </div>
+            <span className={`text-[10px] mt-0.5 tracking-tight ${activeTab === 'products' ? 'font-black text-[#e5be7d]' : 'font-semibold'}`}>
+              Products
+            </span>
+          </button>
+
+          {/* 4. Videos */}
+          <button
+            onClick={() => setActiveTab('projects')}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer relative ${
+              activeTab === 'projects'
+                ? 'text-[#e5be7d]'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition-transform relative ${activeTab === 'projects' ? 'scale-110 bg-[#c28c46]/20' : ''}`}>
+              <Film className="w-4.5 h-4.5" />
+            </div>
+            <span className={`text-[10px] mt-0.5 tracking-tight ${activeTab === 'projects' ? 'font-black text-[#e5be7d]' : 'font-semibold'}`}>
+              Videos
+            </span>
+          </button>
+
+          {/* 5. Side Bar / Menu */}
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className={`flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all cursor-pointer relative ${
+              mobileSidebarOpen || activeTab === 'services' || activeTab === 'photos' || activeTab === 'settings'
+                ? 'text-[#e5be7d]'
+                : 'text-stone-400 hover:text-stone-200'
+            }`}
+          >
+            <div className={`p-1 rounded-lg transition-transform relative ${
+              mobileSidebarOpen || activeTab === 'services' || activeTab === 'photos' || activeTab === 'settings'
+                ? 'scale-110 bg-[#c28c46]/20'
+                : ''
+            }`}>
+              <Menu className="w-4.5 h-4.5" />
+              {(activeTab === 'services' || activeTab === 'photos' || activeTab === 'settings') && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#c28c46] animate-pulse" />
+              )}
+            </div>
+            <span className={`text-[10px] mt-0.5 tracking-tight ${
+              mobileSidebarOpen || activeTab === 'services' || activeTab === 'photos' || activeTab === 'settings'
+                ? 'font-black text-[#e5be7d]'
+                : 'font-semibold'
+            }`}>
+              Side Bar
+            </span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };

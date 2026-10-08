@@ -79,17 +79,17 @@ export const HomeRenoCategories: React.FC = () => {
           <div className="w-20 h-0.5 bg-gradient-to-r from-transparent via-[#b87a2a] to-transparent mx-auto mt-3" />
         </div>
 
-        {/* 9 Main Category Cards (3 columns x 3 rows) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
+        {/* 9 Main Category Cards (2 columns on mobile: 2 2 phir 2, 3 cols on lg) */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-12 sm:mb-16">
           {services.map((service) => (
             <div
               key={service.id}
               onClick={() => handleCardClick(service)}
               className="group cursor-pointer flex flex-col items-center"
             >
-              {/* Card Container with golden border matching screenshot */}
-              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden p-1.5 border border-[#dfbe88] group-hover:border-[#b87a2a] bg-white shadow-[0_4px_20px_rgba(67,34,12,0.05)] group-hover:shadow-[0_16px_36px_rgba(67,34,12,0.12)] transition-all duration-300 relative">
-                <div className="w-full h-full rounded-xl overflow-hidden relative">
+              {/* Card Container with golden border */}
+              <div className="w-full aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden p-1 sm:p-1.5 border border-[#dfbe88] group-hover:border-[#b87a2a] bg-white shadow-xs group-hover:shadow-md transition-all duration-300 relative">
+                <div className="w-full h-full rounded-lg sm:rounded-xl overflow-hidden relative">
                   <img
                     src={service.image}
                     alt={service.title}
@@ -97,10 +97,10 @@ export const HomeRenoCategories: React.FC = () => {
                     loading="lazy"
                   />
                   {/* Subtle hover overlay with quick quote button */}
-                  <div className="absolute inset-0 bg-[#241710]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-[#241710]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 sm:p-4">
                     <button
                       onClick={(e) => handleQuickQuote(e, service.title)}
-                      className="bg-[#fdfaf5] text-[#241710] text-xs font-bold py-2.5 px-5 rounded-lg shadow-md hover:bg-[#b87a2a] hover:text-white transition-colors border border-[#d6a55e]/40 cursor-pointer"
+                      className="bg-[#fdfaf5] text-[#241710] text-[10px] sm:text-xs font-bold py-1.5 px-3 sm:py-2.5 sm:px-5 rounded-md sm:rounded-lg shadow-md hover:bg-[#b87a2a] hover:text-white transition-colors border border-[#d6a55e]/40 cursor-pointer"
                     >
                       Get Quote
                     </button>
@@ -108,14 +108,14 @@ export const HomeRenoCategories: React.FC = () => {
                 </div>
 
                 {service.priceStart && (
-                  <span className="absolute top-3.5 right-3.5 bg-[#241710]/90 backdrop-blur-xs text-amber-200 text-[10px] font-semibold px-2.5 py-0.5 rounded-md border border-[#d6a55e]/30 shadow-xs">
+                  <span className="absolute top-2 right-2 sm:top-3.5 sm:right-3.5 bg-[#241710]/90 backdrop-blur-xs text-amber-200 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-md border border-[#d6a55e]/30 shadow-xs">
                     {service.priceStart}
                   </span>
                 )}
               </div>
 
               {/* Title label */}
-              <h3 className="mt-3 text-sm sm:text-base font-bold text-[#241710] group-hover:text-[#b87a2a] transition-colors tracking-wide text-center">
+              <h3 className="mt-2 sm:mt-3 text-xs sm:text-base font-bold text-[#241710] group-hover:text-[#b87a2a] transition-colors tracking-wide text-center line-clamp-1">
                 {service.title}
               </h3>
             </div>

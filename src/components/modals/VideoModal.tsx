@@ -1,11 +1,14 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { X, Play, Clock, Share2, ArrowRight } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
+import { getYouTubeVideoId } from '../../utils/youtube';
 
 export const VideoModal: React.FC = () => {
   const { activeVideo, setActiveVideo, setQuoteModalOpen, setSelectedServiceForQuote } = useApp();
 
   if (!activeVideo) return null;
+
+  const cleanId = getYouTubeVideoId(activeVideo.youtubeId) || activeVideo.youtubeId || 'dQw4w9WgXcQ';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -29,13 +32,13 @@ export const VideoModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Video Player / Simulated High-Definition Video Walkthrough */}
+        {/* Video Player */}
         <div className="relative aspect-video w-full bg-black">
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${activeVideo.youtubeId}?autoplay=1&rel=0`}
+            src={`https://www.youtube.com/embed/${cleanId}?autoplay=1&rel=0`}
             title={activeVideo.title}
             className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
         </div>

@@ -55,15 +55,15 @@ export const RecentProjects: React.FC = () => {
           </div>
         </div>
 
-        {/* Video Card Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {filteredProjects.map((project) => (
+        {/* Video Card Grid: 2 cards per row on mobile (2 2 phir 2), compact, sleek */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-5">
+          {filteredProjects.map((project, idx) => (
             <div
               key={project.id}
               onClick={() => handleCardClick(project)}
-              className="group cursor-pointer bg-[#20150e] rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-[#3e291b] flex flex-col"
+              className="group cursor-pointer bg-[#1c130d] hover:bg-[#251911] rounded-xl overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 border border-[#3b271a] hover:border-[#c28c46] flex flex-col justify-between"
             >
-              {/* YouTube Style Player Container */}
+              {/* Compact YouTube Style Video Preview */}
               <div className="relative aspect-video w-full overflow-hidden bg-stone-950">
                 {/* Thumbnail */}
                 <img
@@ -71,84 +71,64 @@ export const RecentProjects: React.FC = () => {
                   alt={project.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90 group-hover:opacity-100"
                   loading="lazy"
+                  onError={(e) => {
+                    const fallbackId = project.youtubeId || 'dQw4w9WgXcQ';
+                    (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${fallbackId}/hqdefault.jpg`;
+                  }}
                 />
 
-                {/* Dark Vignette Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none" />
+                {/* Subtle vignette overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/50 pointer-events-none" />
 
-                {/* Top Bar: Channel Tag + Title */}
-                <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-10">
-                  <div className="flex items-center gap-2 max-w-[85%]">
-                    {/* Small wood logo avatar */}
-                    <div className="w-7 h-7 rounded-full bg-[#b87a2a] flex items-center justify-center shrink-0 border border-white/20 shadow-2xs">
-                      <span className="text-[10px] font-bold text-white">WN</span>
-                    </div>
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="text-white text-xs font-semibold leading-tight line-clamp-1 drop-shadow-md">
-                        {project.title}
-                      </span>
-                      <span className="text-[10px] text-amber-200 font-medium leading-none mt-0.5">
-                        Wood Nido
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* YouTube Red Play Button in Center */}
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="w-16 h-11 bg-red-600 group-hover:bg-red-500 rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
-                    <Play className="w-5 h-5 fill-white text-white translate-x-0.5" />
-                  </div>
-                </div>
-
-                {/* Bottom Bar: Action Icons and "Watch on YouTube" */}
-                <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between text-stone-300 text-[11px] z-10 bg-gradient-to-t from-black/90 to-transparent">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (navigator.share) {
-                          navigator.share({ title: project.title, url: window.location.href });
-                        }
-                      }}
-                      className="hover:text-white transition-colors"
-                      title="Share"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button className="hover:text-white transition-colors" title="Watch later">
-                      <Clock className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {/* YouTube badge */}
-                  <div className="flex items-center gap-1 text-[11px] font-medium text-stone-300 group-hover:text-white transition-colors">
-                    <span>Watch on</span>
-                    <span className="font-bold flex items-center gap-0.5 text-white">
-                      <span className="bg-red-600 text-white rounded-xs px-1 text-[9px] font-black">
-                        ▶
-                      </span>
-                      YouTube
-                    </span>
-                  </div>
-                </div>
-
-                {/* Duration badge */}
-                {project.duration && (
-                  <span className="absolute bottom-8 right-2 bg-black/85 text-white font-mono text-[10px] px-1.5 py-0.5 rounded-sm z-10">
-                    {project.duration}
+                {/* Top Badge: Box Number & Category */}
+                <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between z-10 pointer-events-none">
+                  <span className="bg-[#b87a2a] text-[#1a110a] text-[9px] font-black px-1.5 py-0.5 rounded-xs shadow-xs">
+                    #{idx + 1}
                   </span>
-                )}
+                  <span className="bg-black/75 backdrop-blur-xs text-[#f5d59f] text-[8px] sm:text-[9px] font-semibold px-1.5 py-0.5 rounded-xs line-clamp-1 max-w-[70%]">
+                    {project.category}
+                  </span>
+                </div>
+
+                {/* Compact YouTube Red Play Button */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                  <div className="w-8 h-5.5 sm:w-10 sm:h-7 bg-red-600 group-hover:bg-red-500 rounded-md sm:rounded-lg flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-110">
+                    <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white text-white translate-x-0.5" />
+                  </div>
+                </div>
+
+                {/* Bottom Bar: YouTube logo pill + Duration */}
+                <div className="absolute bottom-1 left-1.5 right-1.5 flex items-center justify-between z-10 pointer-events-none text-white">
+                  <span className="flex items-center gap-0.5 bg-black/70 px-1 py-0.5 rounded-xs text-[8px] sm:text-[9px] font-bold">
+                    <span className="bg-red-600 text-white rounded-2xs px-0.5 text-[7px] leading-tight font-black">▶</span>
+                    <span>YouTube</span>
+                  </span>
+                  {project.duration && (
+                    <span className="bg-black/85 font-mono text-[8px] sm:text-[9px] px-1 py-0.5 rounded-xs">
+                      {project.duration}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Title & Category Underneath */}
-              <div className="p-3 bg-stone-900 border-t border-stone-800">
-                <h3 className="text-white text-xs sm:text-sm font-semibold truncate group-hover:text-amber-400 transition-colors">
-                  {project.title}
-                </h3>
-                <p className="text-[11px] text-stone-400 mt-1 line-clamp-1">
-                  {project.description || project.category}
-                </p>
+              {/* Compact Title & Footer */}
+              <div className="p-2 sm:p-2.5 bg-[#18110b] border-t border-[#2d1e14] flex flex-col justify-between flex-1">
+                <div>
+                  <h3 className="text-white text-[11px] sm:text-xs font-semibold leading-tight line-clamp-1 group-hover:text-[#e4a853] transition-colors">
+                    {project.title}
+                  </h3>
+                  <p className="text-[10px] text-stone-400 mt-0.5 line-clamp-1">
+                    {project.description || `${project.category} Craftsmanship`}
+                  </p>
+                </div>
+                
+                <div className="mt-1.5 pt-1.5 border-t border-stone-800/80 flex items-center justify-between text-[10px]">
+                  <span className="text-[#c28c46] font-medium text-[9px] sm:text-[10px] flex items-center gap-1 group-hover:underline">
+                    <span>Watch Video</span>
+                    <Play className="w-2.5 h-2.5 fill-[#c28c46]" />
+                  </span>
+                  <span className="text-stone-500 text-[9px]">Tap to play</span>
+                </div>
               </div>
 
             </div>
