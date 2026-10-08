@@ -1,3 +1,5 @@
+export * from './types/index';
+
 export interface WoodProduct {
   id: string;
   title: string;

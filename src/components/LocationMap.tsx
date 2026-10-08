@@ -5,16 +5,23 @@ import { MapPin, ExternalLink, Navigation } from 'lucide-react';
 export const LocationMap: React.FC = () => {
   const { siteConfig } = useApp();
 
-  const query = encodeURIComponent(
-    siteConfig.mapQuery || siteConfig.address || 'Faizi Plaza Soan Garden Block B Islamabad'
-  );
-  const zoom = siteConfig.mapZoom || 16;
+  // Pinpoint accurate GPS coordinates for shop (from https://maps.app.goo.gl/yHqeRina8veD8CABA)
+  const defaultShopCoords = '33.5652375,73.1500156';
+  const rawQuery =
+    siteConfig.mapQuery &&
+    !siteConfig.mapQuery.toLowerCase().includes('faizi') &&
+    !siteConfig.mapQuery.toLowerCase().includes('g-9')
+      ? siteConfig.mapQuery
+      : defaultShopCoords;
+
+  const query = encodeURIComponent(rawQuery);
+  const zoom = siteConfig.mapZoom || 17;
   
-  // Use maps.google.com embed with precise query, or coordinates for Soan Garden Block B Faizi Plaza
+  // Use maps.google.com embed with precise query/coordinates
   const embedUrl = `https://maps.google.com/maps?q=${query}&t=&z=${zoom}&ie=UTF8&iwloc=&output=embed`;
 
-  // Direct Google Maps link (User provided maps.app.goo.gl link or fallback)
-  const googleMapsUrl = siteConfig.mapUrl || `https://www.google.com/maps/search/?api=1&query=${query}`;
+  // Direct Google Maps link (User provided link: https://maps.app.goo.gl/yHqeRina8veD8CABA)
+  const googleMapsUrl = siteConfig.mapUrl || 'https://maps.app.goo.gl/yHqeRina8veD8CABA';
 
   const displayName = siteConfig.locationName || 'Wood Nido Workshop & Display - Soan Garden';
   const displayAddress = siteConfig.address || 'Plot 7/10, Faizi Plaza, Near Creative Furniture, Block B, Soan Garden, Islamabad';

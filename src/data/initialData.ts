@@ -9,9 +9,9 @@ export const INITIAL_SITE_CONFIG: SiteConfig = {
   email: 'woodnido@gmail.com',
   address: 'Plot 7/10, Faizi Plaza, Near Creative Furniture, Block B, Soan Garden, Islamabad',
   locationName: 'Wood Nido Workshop & Display - Soan Garden',
-  mapQuery: 'Faizi Plaza Soan Garden Block B Islamabad',
-  mapZoom: 16,
-  mapUrl: 'https://maps.app.goo.gl/USgkH71RQLEisrHg6?g_st=ac',
+  mapQuery: '33.5652375,73.1500156',
+  mapZoom: 17,
+  mapUrl: 'https://maps.app.goo.gl/yHqeRina8veD8CABA',
   websiteUrl: 'https://www.woodnido.com/',
   heroHeadline1: 'MODERN',
   heroHeadline2: 'FURNITURE',
@@ -466,3 +466,92 @@ export const INITIAL_PRODUCTS: ProductItem[] = [
     inStock: true,
   },
 ];
+
+// Compatibility exports for WoodStoreContext
+export const initialSiteSettings: any = {
+  businessName: INITIAL_SITE_CONFIG.companyName,
+  tagline: INITIAL_SITE_CONFIG.tagline,
+  phone: INITIAL_SITE_CONFIG.phone,
+  whatsappNumber: INITIAL_SITE_CONFIG.whatsappNumber,
+  email: INITIAL_SITE_CONFIG.email,
+  address: INITIAL_SITE_CONFIG.address,
+  locationName: INITIAL_SITE_CONFIG.locationName,
+  yearsOfExperience: 10,
+  industryExperts: 150,
+  userRetention: 95,
+  globalClients: 200,
+  heroHeadline: INITIAL_SITE_CONFIG.heroHeadline1,
+  heroStartingPrice: INITIAL_SITE_CONFIG.heroStartingPrice,
+  heroSubtext: INITIAL_SITE_CONFIG.heroSubtext,
+  heroSlides: [],
+  aboutImage1: INITIAL_SITE_CONFIG.aboutImage,
+  aboutImage2: INITIAL_SITE_CONFIG.heroImage,
+  aboutText1: INITIAL_SITE_CONFIG.aboutText1,
+  aboutText2: INITIAL_SITE_CONFIG.aboutText2,
+  aboutText3: INITIAL_SITE_CONFIG.aboutText3,
+  ctaImage: INITIAL_SITE_CONFIG.heroImage,
+  showroomImage: INITIAL_SITE_CONFIG.aboutImage,
+};
+
+export const initialCategories: any[] = INITIAL_SERVICES.map(s => ({
+  id: s.id,
+  name: s.title,
+  slug: s.id,
+  imageUrl: s.image,
+  description: s.description,
+}));
+
+export const initialProducts: any[] = INITIAL_PRODUCTS.map(p => ({
+  id: p.id,
+  title: p.title,
+  category: p.category,
+  price: 25000,
+  woodType: p.material || 'Solid Teak',
+  dimensions: p.dimensions || '',
+  finishType: 'Matte Polish',
+  inStock: p.inStock ?? true,
+  featured: true,
+  imageUrl: p.image,
+  description: p.description,
+  createdAt: new Date().toISOString(),
+}));
+
+export const initialProjects: any[] = INITIAL_PROJECTS.map(p => ({
+  id: p.id,
+  title: p.title,
+  category: p.category,
+  thumbnailUrl: p.thumbnail,
+  videoUrl: `https://www.youtube.com/watch?v=${p.youtubeId}`,
+  description: p.description || '',
+  duration: p.duration,
+  completedDate: p.date,
+}));
+
+export const initialReviews: any[] = INITIAL_REVIEWS.map(r => ({
+  id: r.id,
+  clientName: r.name,
+  roleOrLocation: r.role || '',
+  rating: r.rating,
+  comment: r.comment,
+  date: r.date,
+  serviceType: r.service,
+}));
+
+export const initialInquiries: any[] = INITIAL_LEADS.map(l => ({
+  id: l.id,
+  customerName: l.name,
+  phone: l.phone,
+  email: l.email || '',
+  category: l.service,
+  requirement: l.message,
+  budget: l.budget,
+  status: 'New',
+  createdAt: l.createdAt,
+}));
+
+export const initialGalleryPhotos: any[] = GALLERY_ROW_IMAGES.map(g => ({
+  id: g.id,
+  title: g.title,
+  category: g.category,
+  url: g.image,
+}));

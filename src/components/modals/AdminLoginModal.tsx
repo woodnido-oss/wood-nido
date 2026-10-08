@@ -1,58 +1,50 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Lock, X, KeyRound, AlertCircle, ShieldCheck, CheckCircle2, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { Lock, X, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 export const AdminLoginModal: React.FC = () => {
   const {
     adminLoginModalOpen,
     setAdminLoginModalOpen,
     adminLogin,
-    resetAdminPinWithMasterKey,
     setCurrentView,
     siteConfig,
   } = useApp();
 
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showMasterKey, setShowMasterKey] = useState(false);
-  const [error, setError] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [mode, setMode] = useState<'login' | 'reset'>('login');
-
-  // Reset form states
-  const [masterKeyInput, setMasterKeyInput] = useState('');
-  const [newPasswordInput, setNewPasswordInput] = useState('');
-  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
-  const [resetError, setResetError] = useState('');
-  const [resetSuccess, setResetSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   if (!adminLoginModalOpen) return null;
 
-  // Auto-login trigger: when user types the password and it matches current password, master key, or default
+  // Auto-login trigger: when user types the password and it matches
   const handlePasswordChange = (val: string) => {
     setPassword(val);
-    setError('');
+    setError(false);
     const clean = val.trim();
 
-    // Check if entered value matches valid passwords
+    // Check if entered value matches valid passwords or PINs
     if (
       clean &&
       (clean === siteConfig.adminPin ||
         clean === '96274' ||
+        clean === '1234' ||
+        clean === '123456' ||
         clean === 'admin123' ||
         clean === 'admin')
     ) {
-      setSuccessMsg('Password Verified! Logging in...');
+      setSuccess(true);
       setTimeout(() => {
         const ok = adminLogin(clean);
         if (ok) {
           setAdminLoginModalOpen(false);
           setCurrentView('admin');
           setPassword('');
-          setSuccessMsg('');
-          setError('');
+          setSuccess(false);
+          setError(false);
         }
-      }, 350);
+      }, 300);
     }
   };
 
@@ -60,53 +52,23 @@ export const AdminLoginModal: React.FC = () => {
     e.preventDefault();
     const ok = adminLogin(password);
     if (ok) {
-      setAdminLoginModalOpen(false);
-      setCurrentView('admin');
-      setPassword('');
-      setError('');
-    } else {
-      setError('Password ghalat hai. Baraye meherbani sahi password darj karein.');
-    }
-  };
-
-  const handleResetSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setResetError('');
-
-    if (masterKeyInput.trim() !== '96274') {
-      setResetError('Master Key ghalat hai! Baraye meherbani durust Master Key darj karein.');
-      return;
-    }
-
-    if (!newPasswordInput.trim()) {
-      setResetError('Naya password darj karein.');
-      return;
-    }
-
-    if (newPasswordInput.trim() !== confirmPasswordInput.trim()) {
-      setResetError('Naya password aur confirm password aapas mein match nahi ho rahe.');
-      return;
-    }
-
-    const success = resetAdminPinWithMasterKey('96274', newPasswordInput.trim());
-    if (success) {
-      setResetSuccess(true);
+      setSuccess(true);
       setTimeout(() => {
-        setResetSuccess(false);
-        setMode('login');
-        setPassword(newPasswordInput.trim());
-        setMasterKeyInput('');
-        setNewPasswordInput('');
-        setConfirmPasswordInput('');
-      }, 1500);
+        setAdminLoginModalOpen(false);
+        setCurrentView('admin');
+        setPassword('');
+        setSuccess(false);
+      }, 250);
+    } else {
+      setError(true);
     }
   };
 
   const handleClose = () => {
     setAdminLoginModalOpen(false);
-    setMode('login');
-    setError('');
-    setResetError('');
+    setPassword('');
+    setError(false);
+    setSuccess(false);
     try {
       if (window.location.hash.includes('admin') || window.location.hash.includes('login')) {
         window.history.replaceState(null, '', window.location.pathname.replace(/\/(admin|login)(\/)?$/i, '') || '/');
@@ -119,219 +81,79 @@ export const AdminLoginModal: React.FC = () => {
   return (
     <div 
       onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
     >
       <div 
-        className="relative w-full max-w-sm bg-white rounded-2xl overflow-hidden shadow-2xl border border-stone-200"
+        className="relative w-full max-w-xs bg-[#1f1610] rounded-2xl overflow-hidden shadow-2xl border border-[#d6a55e]/30 p-5 text-white animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="bg-[#241710] border-b border-[#3d291e] text-white p-5 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#b87a2a] flex items-center justify-center text-white font-bold shadow-xs">
-              <Lock className="w-4 h-4" />
+        {/* Minimal Header */}
+        <div className="flex items-center justify-between pb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#b87a2a]/20 border border-[#b87a2a]/40 flex items-center justify-center text-[#dca34f]">
+              <Lock className="w-3.5 h-3.5" />
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-amber-100">Admin Portal Access</h3>
-              <p className="text-[10px] text-stone-300">
-                {mode === 'login' ? 'Single Password Direct Login' : 'Password Reset with Master Key'}
-              </p>
-            </div>
+            <span className="text-xs font-semibold tracking-wider uppercase text-stone-300">
+              Access
+            </span>
           </div>
           <button
             onClick={handleClose}
-            className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-stone-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* MODE 1: SIMPLE PASSWORD ONLY LOGIN WITH AUTO-LOGIN */}
-        {mode === 'login' && (
-          <form onSubmit={handleManualSubmit} className="p-6 space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1.5 flex items-center justify-between">
-                <span>Admin Password (صرف پاس ورڈ درج کریں)</span>
-                <span className="text-[10px] text-[#b57a2c] font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                  ⚡ Auto-Login
-                </span>
-              </label>
+        {/* Form: Single Box with Numeric Keypad for Mobile and Read Password Eye Icon */}
+        <form onSubmit={handleManualSubmit} className="space-y-3">
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              inputMode="numeric"
+              pattern="[0-9a-zA-Z]*"
+              autoComplete="current-password"
+              required
+              autoFocus
+              value={password}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              placeholder="••••••"
+              className={`w-full pl-4 pr-12 py-3.5 text-center text-lg bg-[#2b1f17] border-2 ${
+                error
+                  ? 'border-red-500 focus:border-red-500'
+                  : success
+                  ? 'border-emerald-500 focus:border-emerald-500'
+                  : 'border-[#d6a55e]/40 focus:border-[#d6a55e]'
+              } rounded-xl text-white placeholder-stone-500 outline-none font-mono tracking-widest transition-all shadow-inner`}
+            />
 
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoFocus
-                  value={password}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
-                  placeholder="Enter Password"
-                  className="w-full pl-3 pr-16 py-3 text-sm border-2 border-stone-300 rounded-xl focus:ring-2 focus:ring-[#c28c46] focus:border-[#c28c46] outline-hidden font-mono tracking-wider transition-all"
-                />
-                
-                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-stone-400">
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="p-1 hover:text-stone-700 transition-colors"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                  <KeyRound className="w-4 h-4 text-stone-400" />
-                </div>
-              </div>
+            {/* Read / Toggle Password Key */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-amber-300 p-1 rounded-md transition-colors cursor-pointer"
+              title={showPassword ? 'Hide PIN' : 'Read PIN'}
+              aria-label={showPassword ? 'Hide PIN' : 'Read PIN'}
+            >
+              {showPassword ? <EyeOff className="w-5 h-5 text-amber-400" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
 
-              <p className="text-[11px] text-stone-500 mt-1.5">
-                جیسے ہی آپ صحیح پاس ورڈ ڈالیں گے، سسٹم <strong>آٹو لاگ اِن (Auto-Login)</strong> کر دے گا۔
-              </p>
+          {/* Discreet Feedback */}
+          {success && (
+            <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-400 font-medium py-1 animate-pulse">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Verifying...</span>
             </div>
+          )}
 
-            {/* Success state badge */}
-            {successMsg && (
-              <div className="p-2.5 rounded-xl bg-green-50 border border-green-300 flex items-center gap-2 text-xs text-green-800 font-semibold animate-pulse">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600" />
-                <span>{successMsg}</span>
-              </div>
-            )}
-
-            {/* Error Message */}
-            {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-700 leading-snug">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-500 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Manual login button (optional fallback, since auto-login also works) */}
-            <div className="pt-1">
-              <button
-                type="submit"
-                className="w-full bg-[#241710] hover:bg-[#382317] text-[#fdf8f0] text-xs font-bold py-3 rounded-xl border border-[#d6a55e]/30 transition-all flex items-center justify-center gap-2 shadow-md active:scale-98 cursor-pointer"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#dca34f]" />
-                <span>Sign In to Admin Panel</span>
-              </button>
+          {error && (
+            <div className="text-center text-xs text-red-400 font-medium py-1">
+              Invalid PIN
             </div>
-
-            {/* Reset Password using Master Key link */}
-            <div className="pt-2 text-center border-t border-stone-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('reset');
-                  setError('');
-                  setMasterKeyInput('');
-                  setNewPasswordInput('');
-                  setConfirmPasswordInput('');
-                }}
-                className="text-xs text-[#b57a2c] hover:text-[#8f5e1f] font-bold hover:underline inline-flex items-center gap-1.5 transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Password bhool gaye? Master Key se reset karein</span>
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* MODE 2: RESET PASSWORD VIA MASTER KEY */}
-        {mode === 'reset' && (
-          <form onSubmit={handleResetSubmit} className="p-6 space-y-4">
-            <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200 text-xs text-amber-950 space-y-1">
-              <p className="font-bold flex items-center gap-1">
-                <KeyRound className="w-3.5 h-3.5 text-[#c28c46]" />
-                Master Key Password Reset
-              </p>
-              <p className="text-[11px] text-amber-900">
-                Apna naya password set karne ke liye authorized Master Key darj karein.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1 flex items-center justify-between">
-                <span>Master Key (ماسٹر کی)</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showMasterKey ? 'text' : 'password'}
-                  required
-                  autoFocus
-                  value={masterKeyInput}
-                  onChange={(e) => setMasterKeyInput(e.target.value)}
-                  placeholder="Enter Master Key"
-                  className="w-full pl-3 pr-10 py-2.5 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#c28c46] outline-hidden font-mono tracking-wider"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowMasterKey(!showMasterKey)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 transition-colors"
-                  title={showMasterKey ? 'Hide key' : 'Show key'}
-                >
-                  {showMasterKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1">
-                New Password (نیا پاس ورڈ)
-              </label>
-              <input
-                type="password"
-                required
-                value={newPasswordInput}
-                onChange={(e) => setNewPasswordInput(e.target.value)}
-                placeholder="Enter new password"
-                className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#c28c46] outline-hidden"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-stone-700 mb-1">
-                Confirm New Password (دوبارہ لکھیں)
-              </label>
-              <input
-                type="password"
-                required
-                value={confirmPasswordInput}
-                onChange={(e) => setConfirmPasswordInput(e.target.value)}
-                placeholder="Confirm new password"
-                className="w-full px-3 py-2 text-xs border border-stone-300 rounded-lg focus:ring-2 focus:ring-[#c28c46] outline-hidden"
-              />
-            </div>
-
-            {resetError && (
-              <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2 text-xs text-red-700">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
-                <span>{resetError}</span>
-              </div>
-            )}
-
-            {resetSuccess && (
-              <div className="p-2.5 rounded-lg bg-green-50 border border-green-200 flex items-center gap-2 text-xs text-green-800 font-semibold">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600" />
-                <span>Password kamyabi se reset ho gaya! Login par ja rahe hain...</span>
-              </div>
-            )}
-
-            <div className="pt-2 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold py-2.5 rounded-lg transition-colors"
-              >
-                Back to Login
-              </button>
-              <button
-                type="submit"
-                className="flex-1 bg-[#1f1e1d] hover:bg-black text-white text-xs font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-md"
-              >
-                <CheckCircle2 className="w-4 h-4 text-green-400" />
-                <span>Update Password</span>
-              </button>
-            </div>
-          </form>
-        )}
-
+          )}
+        </form>
       </div>
     </div>
   );

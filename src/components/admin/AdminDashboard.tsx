@@ -205,28 +205,29 @@ export const AdminDashboard: React.FC = () => {
       
       {/* Top Header */}
       <header className="bg-stone-900 text-white sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-2.5">
               <WoodNidoLogo size="sm" variant="dark" />
-              <span className="bg-[#c28c46] text-stone-950 text-[10px] font-black uppercase px-2 py-0.5 rounded-xs ml-1">
-                Admin Panel
+              <span className="bg-[#c28c46] text-stone-950 text-[9px] sm:text-[10px] font-black uppercase px-1.5 py-0.5 rounded-xs">
+                Admin
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setCurrentView('website')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold transition-colors cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Website</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-amber-300" />
+              <span className="hidden xs:inline">Back to Website</span>
+              <span className="xs:hidden">Site</span>
             </button>
 
             <button
               onClick={adminLogout}
-              className="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 text-xs font-semibold transition-colors border border-red-800/50"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 text-red-300 text-xs font-semibold transition-colors border border-red-800/50 cursor-pointer"
             >
               Logout
             </button>
@@ -235,10 +236,49 @@ export const AdminDashboard: React.FC = () => {
       </header>
 
       {/* Main Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 flex flex-col md:flex-row gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-8 w-full flex-1 flex flex-col md:flex-row gap-4 sm:gap-6">
         
-        {/* Sidebar Nav */}
-        <aside className="w-full md:w-60 shrink-0 space-y-1 bg-white p-3 rounded-2xl border border-stone-200 shadow-xs h-fit">
+        {/* Mobile-Only Horizontal Scrollable Tabs Bar */}
+        <div className="md:hidden sticky top-14 z-20 bg-stone-100/95 backdrop-blur-md pt-1 pb-2 -mx-3 px-3 border-b border-stone-200 overflow-x-auto flex items-center gap-1.5 no-scrollbar">
+          {[
+            { id: 'overview', label: 'Overview', icon: TrendingUp, count: null },
+            { id: 'leads', label: 'Leads', icon: Users, count: leads.length },
+            { id: 'products', label: 'Products', icon: Package, count: products.length },
+            { id: 'services', label: 'Services', icon: Layers, count: services.length },
+            { id: 'projects', label: 'Videos', icon: Film, count: projects.length },
+            { id: 'photos', label: 'Photos', icon: ImageIcon, count: galleryImages.length },
+            { id: 'reviews', label: 'Reviews', icon: Star, count: reviews.length },
+            { id: 'location', label: 'Map', icon: MapPin, count: null },
+            { id: 'settings', label: 'Settings', icon: Settings, count: null },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[#241710] text-[#e5be7d] shadow-sm ring-1 ring-[#c28c46]/40'
+                    : 'bg-white text-stone-700 hover:bg-stone-200 border border-stone-200/80'
+                }`}
+              >
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#e5be7d]' : 'text-stone-500'}`} />
+                <span>{tab.label}</span>
+                {tab.count !== null && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                    isActive ? 'bg-[#c28c46] text-stone-950' : 'bg-stone-200 text-stone-700'
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Sidebar Nav (Desktop Only) */}
+        <aside className="hidden md:block md:w-60 shrink-0 space-y-1 bg-white p-3 rounded-2xl border border-stone-200 shadow-xs h-fit sticky top-20">
           <button
             onClick={() => setActiveTab('overview')}
             className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-colors ${
@@ -1939,9 +1979,9 @@ export const AdminDashboard: React.FC = () => {
                               ...settingsForm,
                               locationName: 'Wood Nido Workshop & Display - Soan Garden',
                               address: 'Plot 7/10, Faizi Plaza, Near Creative Furniture, Block B, Soan Garden, Islamabad',
-                              mapQuery: 'Faizi Plaza Soan Garden Block B Islamabad',
-                              mapZoom: 16,
-                              mapUrl: 'https://maps.app.goo.gl/USgkH71RQLEisrHg6?g_st=ac',
+                              mapQuery: '33.5652375,73.1500156',
+                              mapZoom: 17,
+                              mapUrl: 'https://maps.app.goo.gl/yHqeRina8veD8CABA',
                             })
                           }
                           className="text-left p-2.5 rounded-lg bg-amber-100/70 hover:bg-amber-200/80 border border-amber-300 transition-colors shadow-xs"

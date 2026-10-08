@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { ChevronDown, Menu, X, Phone } from 'lucide-react';
+import { ChevronDown, Menu, X, Phone, ShieldCheck } from 'lucide-react';
 import { WoodNidoLogo } from './WoodNidoLogo';
 
 export const Navbar: React.FC = () => {
-  const { siteConfig, setQuoteModalOpen } = useApp();
+  const { siteConfig, setQuoteModalOpen, isAdmin, setCurrentView, setAdminLoginModalOpen } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdown, setServicesDropdown] = useState(false);
   const [projectsDropdown, setProjectsDropdown] = useState(false);
@@ -183,6 +183,19 @@ export const Navbar: React.FC = () => {
           {/* Mobile hamburger */}
           <div className="flex sm:hidden items-center gap-2">
             <button
+              onClick={() => {
+                if (isAdmin) {
+                  setCurrentView('admin');
+                } else {
+                  setAdminLoginModalOpen(true);
+                }
+              }}
+              className="flex items-center gap-1 text-[11px] font-bold text-[#442c1d] bg-[#f5e6cc] border border-[#d2a66e] px-2.5 py-1.5 rounded-lg"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#a36b22]" />
+              <span>Admin</span>
+            </button>
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-stone-700 hover:bg-stone-200/50 focus:outline-hidden"
               aria-label="Toggle menu"
@@ -241,6 +254,20 @@ export const Navbar: React.FC = () => {
           </button>
 
           <div className="pt-2 flex flex-col gap-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (isAdmin) {
+                  setCurrentView('admin');
+                } else {
+                  setAdminLoginModalOpen(true);
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 border border-[#d2a66e] bg-[#f5e6cc] text-[#442c1d] py-3 rounded-lg font-bold text-sm shadow-xs cursor-pointer"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#a36b22]" />
+              <span>{isAdmin ? 'Open Admin Dashboard' : 'Admin Panel (Testing)'}</span>
+            </button>
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
